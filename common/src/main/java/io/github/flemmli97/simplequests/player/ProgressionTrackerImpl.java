@@ -212,7 +212,7 @@ public abstract class ProgressionTrackerImpl<T, E extends QuestEntry> implements
         public Tag save() {
             ListTag list = new ListTag();
             this.pos.forEach(pos -> list.add(BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, pos)
-                    .getOrThrow(false, SimpleQuests.LOGGER::error)));
+                    .getOrThrow()));
             return list;
         }
 
@@ -220,7 +220,7 @@ public abstract class ProgressionTrackerImpl<T, E extends QuestEntry> implements
         public void load(Tag tag) {
             try {
                 ListTag list = (ListTag) tag;
-                list.forEach(t -> this.pos.add(BlockPos.CODEC.parse(NbtOps.INSTANCE, t).getOrThrow(true, SimpleQuests.LOGGER::error)));
+                list.forEach(t -> this.pos.add(BlockPos.CODEC.parse(NbtOps.INSTANCE, t).getOrThrow()));
             } catch (ClassCastException ignored) {
             }
         }

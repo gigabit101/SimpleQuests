@@ -19,9 +19,7 @@
       "amount": 15,
       "consumeItems": true,
       "predicate": {
-        "items": [
-          "minecraft:stone"
-        ]
+        "items": "minecraft:stone"
       },
       "description": "Give 15 stone",
       "id": "simplequests:item"

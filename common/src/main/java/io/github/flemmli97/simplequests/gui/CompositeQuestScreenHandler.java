@@ -1,6 +1,7 @@
 package io.github.flemmli97.simplequests.gui;
 
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.config.ConfigHandler;
 import io.github.flemmli97.simplequests.datapack.QuestsManager;
@@ -11,9 +12,7 @@ import io.github.flemmli97.simplequests.quest.types.CompositeQuest;
 import io.github.flemmli97.simplequests.quest.types.Quest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -27,12 +26,15 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<CompositeQuestScreenHandler.GuiData> {
@@ -69,17 +71,17 @@ public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<Composi
     private ItemStack ofQuest(Quest quest, int idx, ServerPlayer player) {
         PlayerData data = PlayerData.get(player);
         ItemStack stack = quest.getIcon();
-        stack.setHoverName(quest.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
-        ListTag lore = new ListTag();
-        quest.getDescription(player).forEach(c -> lore.add(StringTag.valueOf(Component.Serializer.toJson(c.setStyle(c.getStyle().withItalic(false))))));
+        stack.set(DataComponents.CUSTOM_NAME, quest.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
+        List<Component> lore = new ArrayList<>();
+        quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
             stack.enchant(Enchantments.UNBREAKING, 1);
-            stack.hideTooltipPart(ItemStack.TooltipPart.ENCHANTMENTS);
+            stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
         }
         for (MutableComponent comp : quest.getFormattedGuiTasks(player))
-            lore.add(StringTag.valueOf(Component.Serializer.toJson(comp.setStyle(comp.getStyle().withItalic(false)))));
-        stack.getOrCreateTagElement("display").put("Lore", lore);
-        stack.getOrCreateTagElement("SimpleQuests").putInt("Quest", idx);
+            lore.add(comp.setStyle(comp.getStyle().withItalic(false)));
+        stack.set(DataComponents.LORE, new ItemLore(lore));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> t.putInt(QuestGui.STACK_NBT_ID, idx));
         return stack;
     }
 
@@ -101,7 +103,7 @@ public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<Composi
             int mod = i % 9;
             if (i == 0) {
                 ItemStack stack = new ItemStack(Items.ARROW);
-                stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 inv.updateStack(i, stack);
             } else if ((additionalData.rows > 2 && (i < 9 || i > this.size - 1)) || mod == 0 || mod == 8)
                 inv.updateStack(i, QuestGui.emptyFiller());
@@ -132,16 +134,17 @@ public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<Composi
             return true;
         }
         ItemStack stack = slot.getItem();
-        if (!stack.hasTag())
-            return false;
-        CompoundTag tag = stack.getTag().getCompound("SimpleQuests");
-        if (!tag.contains("Quest"))
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null)
             return false;
         if (stack.getItem() == Items.BOOK) {
             QuestGui.playSongToPlayer(player, SoundEvents.VILLAGER_NO, 1, 1f);
             return false;
         }
-        int idx = tag.getInt("Quest");
+        Optional<Integer> opt = customData.read(Codec.INT.fieldOf(QuestGui.STACK_NBT_ID)).result();
+        if (opt.isEmpty())
+            return false;
+        int idx = opt.get();
         QuestBase actual = this.quest.resolveToQuest(player, idx);
         if (actual == null) {
             SimpleQuests.LOGGER.error("No such quest for composite " + this.quest.id);

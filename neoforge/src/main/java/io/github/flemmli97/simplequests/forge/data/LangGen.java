@@ -26,7 +26,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class LangGen implements DataProvider {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private final Map<String, String> data = new LinkedHashMap<>();
     private final DataGenerator gen;
     private final String locale;

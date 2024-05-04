@@ -19,16 +19,14 @@
         {
           "description": "emerald",
           "value": {
-            "items": [
-              "minecraft:emerald_block"
-            ]
+            "items": "minecraft:emerald_block"
           }
         }
       ],
       "amount": {
-        "type": "minecraft:uniform",
-        "min": 3,
-        "max": 5
+        "min": 3.0,
+        "max": 5.0,
+        "type": "minecraft:uniform"
       },
       "use": true,
       "consume": false,

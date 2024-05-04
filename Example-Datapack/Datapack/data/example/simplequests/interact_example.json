@@ -22,9 +22,7 @@
       "consume": true,
       "description": "Use nametag on 2 chickens",
       "item": {
-        "items": [
-          "minecraft:name_tag"
-        ]
+        "items": "minecraft:name_tag"
       },
       "id": "simplequests:entity_interact"
     }

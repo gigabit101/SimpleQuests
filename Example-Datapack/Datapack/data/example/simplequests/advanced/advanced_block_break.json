@@ -4,11 +4,7 @@
   "parent_id": [],
   "redo_parent": false,
   "need_unlock": false,
-  "icon": {
-    "item": "minecraft:diamond_pickaxe",
-    "count": 1,
-    "tag": "{Damage:0}"
-  },
+  "icon": "minecraft:diamond_pickaxe",
   "repeat_delay": "1w:5d:3h:2m",
   "repeat_daily": 0,
   "sorting_id": 0,
@@ -22,22 +18,20 @@
       "amount": 3,
       "use": false,
       "item": {
-        "items": [
-          "minecraft:diamond_pickaxe"
-        ],
-        "enchantments": [
-          {
-            "enchantment": "minecraft:unbreaking",
-            "levels": {
-              "min": 1
+        "items": "minecraft:diamond_pickaxe",
+        "predicates": {
+          "minecraft:enchantments": [
+            {
+              "enchantment": "minecraft:unbreaking",
+              "levels": {
+                "min": 1
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "block": {
-        "blocks": [
-          "minecraft:quartz_stairs"
-        ],
+        "blocks": "minecraft:quartz_stairs",
         "state": {
           "facing": "east"
         }

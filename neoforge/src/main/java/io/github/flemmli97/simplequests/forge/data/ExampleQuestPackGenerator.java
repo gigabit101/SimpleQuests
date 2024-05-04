@@ -17,12 +17,15 @@ import net.minecraft.advancements.critereon.EnchantmentPredicate;
 import net.minecraft.advancements.critereon.EntityFlagsPredicate;
 import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.EntityTypePredicate;
+import net.minecraft.advancements.critereon.ItemEnchantmentsPredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.critereon.ItemSubPredicates;
 import net.minecraft.advancements.critereon.LocationPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
@@ -38,22 +41,22 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-@Mod.EventBusSubscriber(modid = SimpleQuests.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = SimpleQuests.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class ExampleQuestPackGenerator extends QuestProvider {
 
     private static final String PACK_META = "{\"pack\": {\"pack_format\": 9,\"description\": [{\"text\":\"Example Quests\",\"color\":\"gold\"}]}}";
 
-    public ExampleQuestPackGenerator(PackOutput output, boolean full) {
-        super(createGenerator(output), full);
+    public ExampleQuestPackGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup, boolean full) {
+        super(createGenerator(output), lookup, full);
     }
 
     /**
@@ -69,12 +72,12 @@ public class ExampleQuestPackGenerator extends QuestProvider {
     @SubscribeEvent
     public static void data(GatherDataEvent event) {
         DataGenerator data = event.getGenerator();
-        data.addProvider(event.includeServer(), new ExampleQuestPackGenerator(data.getPackOutput(), true));
+        data.addProvider(event.includeServer(), new ExampleQuestPackGenerator(data.getPackOutput(), event.getLookupProvider(), true));
         data.addProvider(event.includeClient(), new LangGen(data));
     }
 
     @Override
-    protected void add() {
+    protected void add(HolderLookup.Provider provider) {
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "advancement_example"),
                 "Example for an advancement quest",
                 new ResourceLocation("chests/abandoned_mineshaft"))
@@ -141,7 +144,7 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .addTaskEntry("cows", new QuestEntryMultiImpl.MultiKillEntry(List.of(
                         Either.left(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.COW)).build()),
                         Either.right(Pair.of(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.COW))
-                                .located(LocationPredicate.inBiome(Biomes.PLAINS)).build(), "Kill %2$s plains cow"))), UniformGenerator.between(5, 8), "Task: 5-8 cows or cows in a plains biome", Optional.empty())));
+                                .located(LocationPredicate.Builder.inBiome(provider.lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS))).build(), "Kill %2$s plains cow"))), UniformGenerator.between(5, 8), "Task: 5-8 cows or cows in a plains biome", Optional.empty())));
 
         //Location example
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "location_example"),
@@ -149,23 +152,23 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 new ResourceLocation("chests/abandoned_mineshaft"))
                 .withSortingNum(1)
                 .withIcon(new ItemStack(Items.MAP))
-                .addTaskEntry("structure", new QuestEntryImpls.LocationEntry(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm"))), "Find a warm ocean ruin", null))
-                .addTaskEntry("structure2", new QuestEntryImpls.LocationEntry(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold"))), "Find a cold ocean ruin", null)));
+                .addTaskEntry("structure", new QuestEntryImpls.LocationEntry(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm")))).build(), "Find a warm ocean ruin", null))
+                .addTaskEntry("structure2", new QuestEntryImpls.LocationEntry(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold")))).build(), "Find a cold ocean ruin", null)));
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "multi/location_example_multi"),
                 "Example for a multi location quest using a location predicate",
                 new ResourceLocation("chests/abandoned_mineshaft"))
                 .withSortingNum(1)
                 .withIcon(new ItemStack(Items.COMPASS))
                 .addTaskEntry("structure", new QuestEntryMultiImpl.MultiLocationEntry(List.of(
-                        Pair.of(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm"))), "Go to warm ocean ruin"),
-                        Pair.of(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold"))), "Go to cold ocean ruin")), "Find a warm or cold ocean ruin", Optional.empty())));
+                        Pair.of(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm")))).build(), "Go to warm ocean ruin"),
+                        Pair.of(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold")))).build(), "Go to cold ocean ruin")), "Find a warm or cold ocean ruin", Optional.empty())));
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "location_example_sneak"),
                 "Example for a location quest using a location predicate. Player needs to sneak additionally",
                 new ResourceLocation("chests/abandoned_mineshaft"))
                 .withSortingNum(1)
                 .withIcon(new ItemStack(Items.MAP))
-                .addTaskEntry("structure", new QuestEntryImpls.LocationEntry(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm"))), "Find a warm ocean ruin", EntityPredicate.Builder.entity().flags(EntityFlagsPredicate.Builder.flags().setCrouching(true).build()).build()))
-                .addTaskEntry("structure2", new QuestEntryImpls.LocationEntry(LocationPredicate.inStructure(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold"))), "Find a cold ocean ruin", EntityPredicate.Builder.entity().flags(EntityFlagsPredicate.Builder.flags().setCrouching(true).build()).build())));
+                .addTaskEntry("structure", new QuestEntryImpls.LocationEntry(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_warm")))).build(), "Find a warm ocean ruin", EntityPredicate.Builder.entity().flags(EntityFlagsPredicate.Builder.flags().setCrouching(true)).build()))
+                .addTaskEntry("structure2", new QuestEntryImpls.LocationEntry(LocationPredicate.Builder.inStructure(provider.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, new ResourceLocation("ocean_ruin_cold")))).build(), "Find a cold ocean ruin", EntityPredicate.Builder.entity().flags(EntityFlagsPredicate.Builder.flags().setCrouching(true)).build())));
 
         //Position example
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "position_example"),
@@ -268,7 +271,7 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .setRepeatDelay(36000)
                 .withIcon(new ItemStack(Items.DIRT))
                 .addTaskEntry("sword", new QuestEntryImpls.ItemEntry(ItemPredicate.Builder.item().of(Items.DIAMOND_SWORD)
-                        .hasEnchantment(new EnchantmentPredicate(Enchantments.SHARPNESS, MinMaxBounds.Ints.between(2, 3)))
+                        .withSubPredicate(ItemSubPredicates.ENCHANTMENTS, ItemEnchantmentsPredicate.enchantments(List.of(new EnchantmentPredicate(Enchantments.SHARPNESS, MinMaxBounds.Ints.between(2, 3)))))
                         .build(), 1, "Give 1 diamond sword with sharp 2 or 3", true, null)));
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "advanced/overworld_hostile"),
                 "Slay mobs",
@@ -277,7 +280,7 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .withIcon(new ItemStack(Items.DIAMOND_SWORD))
                 .addTaskEntry("zombies", new QuestEntryImpls.KillEntry(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.ZOMBIE)).build(), 10, "", null))
                 .addTaskEntry("zombies_baby", new QuestEntryImpls.KillEntry(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.ZOMBIE))
-                        .flags(EntityFlagsPredicate.Builder.flags().setIsBaby(true).build()).build(), 3, "", null))
+                        .flags(EntityFlagsPredicate.Builder.flags().setIsBaby(true)).build(), 3, "", null))
                 .addTaskEntry("skeleton", new QuestEntryImpls.KillEntry(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.SKELETON)).build(), 10, "", null))
                 .addTaskEntry("spiders", new QuestEntryImpls.KillEntry(EntityPredicate.Builder.entity().entityType(EntityTypePredicate.of(EntityType.SPIDER)).build(), 5, "", null))
                 .addTaskEntry("xp", new QuestEntryImpls.XPEntry(5, null)));
@@ -305,9 +308,10 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .setRepeatDelay("1w:5d:3h:2m")
                 .withIcon(new ItemStack(Items.DIAMOND_PICKAXE))
                 .addTaskEntry("break", new QuestEntryImpls.BlockInteractEntry(ItemPredicate.Builder.item().of(Items.DIAMOND_PICKAXE)
-                        .hasEnchantment(new EnchantmentPredicate(Enchantments.UNBREAKING, MinMaxBounds.Ints.atLeast(1))).build(),
+                        .withSubPredicate(ItemSubPredicates.ENCHANTMENTS, ItemEnchantmentsPredicate.enchantments(List.of(new EnchantmentPredicate(Enchantments.UNBREAKING, MinMaxBounds.Ints.atLeast(1)))))
+                        .build(),
                         BlockPredicate.Builder.block().of(Blocks.QUARTZ_STAIRS)
-                                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(HorizontalDirectionalBlock.FACING, Direction.EAST).build()).build(), 3, false, false, "Quartz Stairs")));
+                                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(HorizontalDirectionalBlock.FACING, Direction.EAST)).build(), 3, false, false, "Quartz Stairs")));
 
         // Visibility tests
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "visibility/requirements"),
@@ -316,7 +320,7 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .setRepeatDelay(36000)
                 .withIcon(new ItemStack(Items.DIRT))
                 .setVisibility(QuestBase.Visibility.ALWAYS)
-                .withUnlockCondition(EntityPredicate.Builder.entity().located(LocationPredicate.atYLocation(MinMaxBounds.Doubles.atLeast(64))).build())
+                .withUnlockCondition(EntityPredicate.Builder.entity().located(LocationPredicate.Builder.atYLocation(MinMaxBounds.Doubles.atLeast(64))).build())
                 .addDescription("Requires player to be y > 64")
                 .addTaskEntry("fish", new QuestEntryImpls.ItemEntry(ItemPredicate.Builder.item().of(Items.COD).build(), 15, "Give 15 cods", true, null)));
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "visibility/daily_limit"),

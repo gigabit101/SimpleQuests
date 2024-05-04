@@ -4,11 +4,7 @@
   "parent_id": [],
   "redo_parent": false,
   "need_unlock": false,
-  "icon": {
-    "item": "minecraft:fishing_rod",
-    "count": 1,
-    "tag": "{Damage:0}"
-  },
+  "icon": "minecraft:fishing_rod",
   "repeat_delay": "1d",
   "repeat_daily": 0,
   "sorting_id": 0,
@@ -20,9 +16,7 @@
   "entries": {
     "cod": {
       "item": {
-        "items": [
-          "minecraft:cod"
-        ]
+        "items": "minecraft:cod"
       },
       "amount": 5,
       "description": "Fish 5 cods",

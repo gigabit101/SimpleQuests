@@ -2,6 +2,8 @@ modLoader="javafml"
 loaderVersion="[${loader_version},)"
 license="All rights reserved"
 issueTrackerURL="https://github.com/Flemmli97/SimpleQuests/issues"
+[[mixins]]
+config = "simplequests.mixins.json"
 [[mods]]
 modId="simplequests"
 version="${version}"
@@ -12,13 +14,13 @@ authors="Flemmli97"
 description='''Server sided questing'''
 [[dependencies.simplequests]]
 modId="minecraft"
-mandatory=true
+type="required"
 versionRange="[${mcversion},)"
 ordering="NONE"
 side="BOTH"
 [[dependencies.simplequests]]
-modId="forge"
-mandatory=true
+modId="neoforge"
+type="required"
 versionRange="[${forge_version},)"
 ordering="NONE"
 side="BOTH"

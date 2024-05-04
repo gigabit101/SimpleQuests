@@ -18,9 +18,7 @@
       "amount": 3,
       "use": true,
       "block": {
-        "blocks": [
-          "minecraft:chest"
-        ]
+        "blocks": "minecraft:chest"
       },
       "consumeItem": false,
       "description": "Interact with chest x3",

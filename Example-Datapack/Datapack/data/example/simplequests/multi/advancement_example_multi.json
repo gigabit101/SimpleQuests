@@ -5,7 +5,7 @@
   "redo_parent": false,
   "need_unlock": false,
   "icon": {
-    "item": "minecraft:map",
+    "id": "minecraft:map",
     "count": 5
   },
   "repeat_delay": 36000,

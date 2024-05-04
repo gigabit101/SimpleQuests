@@ -8,10 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.quest.QuestCategory;
 import io.github.flemmli97.simplequests.quest.types.Quest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -34,8 +37,9 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
     private static final int PATH_SUFFIX_LENGTH = ".json".length();
 
     private static final Gson GSON = new GsonBuilder().create();
-    private static final QuestsManager INSTANCE = new QuestsManager();
+    public static QuestsManager INSTANCE;
 
+    private final HolderLookup.Provider provider;
     private Map<ResourceLocation, QuestCategory> categories;
     private Map<ResourceLocation, QuestCategory> selectableCategories;
     private List<QuestCategory> categoryView;
@@ -44,6 +48,10 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
     private Map<QuestCategory, Map<ResourceLocation, QuestBase>> quests;
 
     private Map<QuestCategory, Set<Quest>> dailyQuests;
+
+    public QuestsManager(HolderLookup.Provider provider) {
+        this.provider = provider;
+    }
 
     public static QuestsManager instance() {
         return INSTANCE;
@@ -63,13 +71,9 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
             ResourceLocation id = new ResourceLocation(fileRes.getNamespace(), path.substring(i, path.length() - PATH_SUFFIX_LENGTH));
             try (BufferedReader reader = resource.openAsReader()) {
                 JsonElement jsonElement = GsonHelper.fromJson(GSON, reader, JsonElement.class);
-                if (jsonElement != null) {
-                    JsonElement jsonElement2 = map.put(id, jsonElement);
-                    if (jsonElement2 != null) {
-                        throw new IllegalStateException("Duplicate data file ignored with ID " + id);
-                    }
-                } else {
-                    SimpleQuests.LOGGER.error("Couldn't load data file {} from {} as it's null or empty", id, fileRes);
+                JsonElement jsonElement2 = map.put(id, jsonElement);
+                if (jsonElement2 != null) {
+                    throw new IllegalStateException("Duplicate data file ignored with ID " + id);
                 }
             } catch (IllegalArgumentException | IOException | JsonParseException e) {
                 SimpleQuests.LOGGER.error("Couldn't parse data file {} from {}", new Object[]{id, fileRes, e});
@@ -78,16 +82,17 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
         return map;
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public void apply(ResourceResult result, ResourceManager resourceManager, ProfilerFiller profiler) {
         ImmutableMap.Builder<ResourceLocation, QuestCategory> categoryBuilder = new ImmutableMap.Builder<>();
         categoryBuilder.put(QuestCategory.DEFAULT_CATEGORY.id, QuestCategory.DEFAULT_CATEGORY);
+        DynamicOps<JsonElement> ops = this.provider.createSerializationContext(JsonOps.INSTANCE);
         result.categories.forEach((res, el) -> {
             if (el.isJsonObject()) {
                 JsonObject obj = el.getAsJsonObject();
                 if (!obj.keySet().isEmpty()) {
-                    categoryBuilder.put(res, QuestCategory.of(res, obj));
+                    obj.addProperty("id", res.toString());
+                    categoryBuilder.put(res, QuestCategory.CODEC.apply(true).parse(ops, obj).getOrThrow());
                 }
             }
         });
@@ -111,7 +116,7 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
                                 throw new JsonSyntaxException("Quest category of " + cat + " for quest " + res + " doesn't exist!");
                         }
                         ResourceLocation questType = new ResourceLocation(GsonHelper.getAsString(obj, QuestBase.TYPE_ID, Quest.ID.toString()));
-                        QuestBase base = QuestBaseRegistry.deserialize(questType, res, questCategory, obj);
+                        QuestBase base = QuestBaseRegistry.deserialize(ops, questType, res, questCategory, obj);
                         map.computeIfAbsent(questCategory, c -> new ImmutableMap.Builder<>())
                                 .put(res, base);
                     }
@@ -179,7 +184,7 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
         return this.categoryView;
     }
 
-    protected record ResourceResult(Map<ResourceLocation, JsonElement> categories,
-                                    Map<ResourceLocation, JsonElement> quests) {
+    public record ResourceResult(Map<ResourceLocation, JsonElement> categories,
+                                 Map<ResourceLocation, JsonElement> quests) {
     }
 }

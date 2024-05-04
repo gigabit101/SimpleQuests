@@ -50,7 +50,7 @@ public abstract class ServerPlayerMixin extends Player implements SimpleQuestDat
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
     private void read(CompoundTag compound, CallbackInfo info) {
-        compound.put("SimpleQuestData", this.simplequestData.save());
+        compound.put("SimpleQuestData", this.simplequestData.save(this.getServer()));
     }
 
     @Override

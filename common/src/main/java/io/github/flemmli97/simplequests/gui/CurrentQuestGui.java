@@ -8,10 +8,8 @@ import io.github.flemmli97.simplequests.player.QuestProgress;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -28,7 +26,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -66,9 +67,9 @@ public class CurrentQuestGui extends ServerOnlyScreenHandler<Object> {
     private ItemStack ofQuest(QuestProgress progress, ServerPlayer player) {
         QuestBase quest = progress.getQuest();
         ItemStack stack = quest.getIcon();
-        stack.setHoverName(progress.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
-        ListTag lore = new ListTag();
-        progress.getDescription(player).forEach(c -> lore.add(StringTag.valueOf(Component.Serializer.toJson(c.setStyle(c.getStyle().withItalic(false))))));
+        stack.set(DataComponents.CUSTOM_NAME, progress.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
+        List<Component> lore = new ArrayList<>();
+        progress.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         List<String> finished = progress.finishedTasks();
         progress.getQuestEntries().entrySet().stream()
                 .filter(e -> !finished.contains(e.getKey()))
@@ -76,18 +77,18 @@ public class CurrentQuestGui extends ServerOnlyScreenHandler<Object> {
                     MutableComponent comp = e.getValue().progress(player, progress, e.getKey());
                     MutableComponent translation = e.getValue().translation(player).withStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.YELLOW));
                     if (comp == null)
-                        lore.add(StringTag.valueOf(Component.Serializer.toJson(translation)));
+                        lore.add(translation);
                     else
-                        lore.add(StringTag.valueOf(Component.Serializer.toJson(Component.translatable(ConfigHandler.LANG.get(player, "simplequest.quest.progress"), translation, comp).setStyle(comp.getStyle().withItalic(false)))));
+                        lore.add(Component.translatable(ConfigHandler.LANG.get(player, "simplequest.quest.progress"), translation, comp).setStyle(comp.getStyle().withItalic(false)));
                 });
-        stack.getOrCreateTagElement("display").put("Lore", lore);
-        stack.getOrCreateTagElement("SimpleQuests").putString("Quest", quest.id.toString());
+        stack.set(DataComponents.LORE, new ItemLore(lore));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> t.putString(QuestGui.STACK_NBT_ID, quest.id.toString()));
         return stack;
     }
 
     public static ItemStack emptyFiller() {
         ItemStack stack = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
-        stack.setHoverName(Component.literal(""));
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(""));
         return stack;
     }
 
@@ -116,7 +117,7 @@ public class CurrentQuestGui extends ServerOnlyScreenHandler<Object> {
                 inv.updateStack(i, stack);
             } else if (i == 8 && page < this.maxPages) {
                 ItemStack close = new ItemStack(Items.ARROW);
-                close.setHoverName(Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                close.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 inv.updateStack(i, close);
             } else if (i < 9 || i > 44 || i % 9 == 0 || i % 9 == 8)
                 inv.updateStack(i, emptyFiller());
@@ -141,14 +142,14 @@ public class CurrentQuestGui extends ServerOnlyScreenHandler<Object> {
                 ItemStack stack = emptyFiller();
                 if (this.page > 0) {
                     stack = new ItemStack(Items.ARROW);
-                    stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                    stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 }
                 this.slots.get(i).set(stack);
             } else if (i == 8) {
                 ItemStack stack = emptyFiller();
                 if (this.page < this.maxPages) {
                     stack = new ItemStack(Items.ARROW);
-                    stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                    stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 }
                 this.slots.get(i).set(stack);
             } else if (i < 9 || i > 44 || i % 9 == 0 || i % 9 == 8)
@@ -179,16 +180,17 @@ public class CurrentQuestGui extends ServerOnlyScreenHandler<Object> {
             return true;
         }
         ItemStack stack = slot.getItem();
-        if (!stack.hasTag())
-            return false;
-        CompoundTag tag = stack.getTag().getCompound("SimpleQuests");
-        if (!tag.contains("Quest"))
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null)
             return false;
         if (stack.getItem() == Items.BOOK) {
             playSongToPlayer(player, SoundEvents.VILLAGER_NO, 1, 1f);
             return false;
         }
-        ResourceLocation id = new ResourceLocation(tag.getString("Quest"));
+        Optional<ResourceLocation> opt = customData.read(ResourceLocation.CODEC.fieldOf(QuestGui.STACK_NBT_ID)).result();
+        if (opt.isEmpty())
+            return false;
+        ResourceLocation id = opt.get();
         Optional<QuestProgress> questOpt = PlayerData.get(this.player).getCurrentQuest().stream().filter(p -> p.getQuest().id.equals(id)).findFirst();
         if (questOpt.isEmpty()) {
             SimpleQuests.LOGGER.error("No such quest " + id);

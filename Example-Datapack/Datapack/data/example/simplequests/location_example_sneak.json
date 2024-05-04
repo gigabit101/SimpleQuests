@@ -16,7 +16,7 @@
   "entries": {
     "structure": {
       "predicate": {
-        "structure": "minecraft:ocean_ruin_warm"
+        "structures": "minecraft:ocean_ruin_warm"
       },
       "description": "Find a warm ocean ruin",
       "playerPredicate": {
@@ -28,7 +28,7 @@
     },
     "structure2": {
       "predicate": {
-        "structure": "minecraft:ocean_ruin_cold"
+        "structures": "minecraft:ocean_ruin_cold"
       },
       "description": "Find a cold ocean ruin",
       "playerPredicate": {

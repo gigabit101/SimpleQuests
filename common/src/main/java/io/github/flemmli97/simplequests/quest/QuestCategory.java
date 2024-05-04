@@ -1,26 +1,45 @@
 package io.github.flemmli97.simplequests.quest;
 
-import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.flemmli97.simplequests.CodecHelper;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.config.ConfigHandler;
+import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class QuestCategory implements Comparable<QuestCategory> {
 
     public static final QuestCategory DEFAULT_CATEGORY = new QuestCategory(new ResourceLocation(SimpleQuests.MODID, "default_category"),
-            "Main", List.of(), new ItemStack(Items.WRITTEN_BOOK), false, -1, -1, -1, true, true, false);
+            "Main", List.of(), new ItemStack(Items.WRITTEN_BOOK), false, -1, -1, 0, true, true, false);
+
+    public static final Function<Boolean, Codec<QuestCategory>> CODEC = Util.memoize(full -> RecordCodecBuilder.create(inst -> inst.group(
+            Codec.BOOL.optionalFieldOf("is_visible").forGetter(c -> !c.isVisible || full ? Optional.of(c.isVisible) : Optional.empty()),
+            Codec.BOOL.optionalFieldOf("is_silent").forGetter(c -> c.isSilent || full ? Optional.of(c.isSilent) : Optional.empty()),
+
+            Codec.INT.optionalFieldOf("sorting_id").forGetter(c -> c.sortingId != 0 || full ? Optional.of(c.sortingId) : Optional.empty()),
+            Codec.INT.optionalFieldOf("max_daily").forGetter(c -> c.maxDaily != 0 || full ? Optional.of(c.maxDaily) : Optional.empty()),
+            Codec.BOOL.optionalFieldOf("selectable").forGetter(c -> !c.canBeSelected || full ? Optional.of(c.canBeSelected) : Optional.empty()),
+
+            CodecHelper.ITEM_STACK_CODEC.optionalFieldOf("icon").forGetter(c -> ParseHelper.defaultChecked(c.getIcon(), full ? null : Items.WRITTEN_BOOK)),
+            Codec.BOOL.optionalFieldOf("only_same_category").forGetter(c -> c.sameCategoryOnly || full ? Optional.of(c.sameCategoryOnly) : Optional.empty()),
+            Codec.INT.optionalFieldOf("max_concurrent_quests").forGetter(c -> c.maxConcurrentQuests != -1 || full ? Optional.of(c.maxConcurrentQuests) : Optional.empty()),
+
+            ResourceLocation.CODEC.optionalFieldOf("id").forGetter(c -> Optional.empty()), // ID only for deserializing
+            Codec.STRING.fieldOf("name").forGetter(c -> c.name),
+            Codec.STRING.listOf().optionalFieldOf("description").forGetter(c -> !c.description.isEmpty() || full ? Optional.of(c.description) : Optional.empty())
+    ).apply(inst, (visible, silent, sort, daily, select, icon, same, max, id, name, desc) -> new QuestCategory(id.orElseThrow(), name, desc.orElse(List.of()), icon.orElse(new ItemStack(Items.WRITTEN_BOOK)),
+            same.orElse(false), max.orElse(-1), sort.orElse(0), daily.orElse(-1), select.orElse(true), visible.orElse(true), silent.orElse(false)))));
 
     public final ResourceLocation id;
     private final String name;
@@ -54,62 +73,6 @@ public class QuestCategory implements Comparable<QuestCategory> {
 
     public MutableComponent getName() {
         return Component.translatable(this.name);
-    }
-
-    public static QuestCategory of(ResourceLocation id, JsonObject obj) {
-        ImmutableList.Builder<String> description = new ImmutableList.Builder<>();
-        JsonElement e = obj.get("description");
-        if (e != null) {
-            if (e.isJsonPrimitive() && !e.getAsString().isEmpty())
-                description.add(e.getAsString());
-            else if (e.isJsonArray()) {
-                e.getAsJsonArray().forEach(ea -> {
-                    if (ea.isJsonPrimitive() && !ea.getAsString().isEmpty()) {
-                        description.add(ea.getAsString());
-                    }
-                });
-            }
-        }
-        return new QuestCategory(id,
-                GsonHelper.getAsString(obj, "name"),
-                description.build(),
-                ParseHelper.icon(obj, "icon", Items.WRITTEN_BOOK),
-                GsonHelper.getAsBoolean(obj, "only_same_category", false),
-                GsonHelper.getAsInt(obj, "max_concurrent_quests", -1),
-                GsonHelper.getAsInt(obj, "sorting_id", 0),
-                GsonHelper.getAsInt(obj, "max_daily", -1),
-                GsonHelper.getAsBoolean(obj, "selectable", true),
-                GsonHelper.getAsBoolean(obj, "is_visible", true),
-                GsonHelper.getAsBoolean(obj, "is_silent", false));
-    }
-
-    public JsonObject serialize(boolean full) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty("name", this.name);
-        if (!this.description.isEmpty() || full) {
-            if (this.description.size() == 1)
-                obj.addProperty("description", this.description.get(0));
-            else {
-                JsonArray arr = new JsonArray();
-                this.description.forEach(arr::add);
-                obj.add("description", arr);
-            }
-        }
-        ParseHelper.writeItemStackToJson(this.icon, full ? null : Items.WRITTEN_BOOK)
-                .ifPresent(icon -> obj.add("icon", icon));
-        if (this.sameCategoryOnly || full)
-            obj.addProperty("only_same_category", this.sameCategoryOnly);
-        if (this.maxConcurrentQuests != -1 || full)
-            obj.addProperty("max_concurrent_quests", this.maxConcurrentQuests);
-        if (this.sortingId != 0 || full)
-            obj.addProperty("sorting_id", this.sortingId);
-        if (!this.canBeSelected || full)
-            obj.addProperty("selectable", this.canBeSelected);
-        if (!this.isVisible || full)
-            obj.addProperty("is_visible", this.isVisible);
-        if (this.isSilent || full)
-            obj.addProperty("is_silent", this.isSilent);
-        return obj;
     }
 
     public ItemStack getIcon() {

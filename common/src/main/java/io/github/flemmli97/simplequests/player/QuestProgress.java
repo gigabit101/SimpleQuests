@@ -2,9 +2,7 @@ package io.github.flemmli97.simplequests.player;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
-import io.github.flemmli97.simplequests.JsonCodecs;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.api.QuestCompletionState;
 import io.github.flemmli97.simplequests.api.QuestEntry;
@@ -20,6 +18,7 @@ import io.github.flemmli97.simplequests.quest.types.CompositeQuest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
@@ -28,12 +27,12 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -270,17 +269,19 @@ public class QuestProgress {
         this.tickables.clear();
     }
 
-    public CompoundTag save() {
+    public CompoundTag save(HolderLookup.Provider lookup) {
         CompoundTag tag = new CompoundTag();
         if (this.base.isDynamic()) {
             tag.putBoolean("DynamicQuest", true);
-            tag.put("DynamicQuest", JsonCodecs.NullableJsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, this.base.serialize(true, false)));
+            tag.put("DynamicQuest", QuestBaseRegistry.CODEC.apply(true, false)
+                    .encodeStart(NbtOps.INSTANCE, this.base).getOrThrow());
         } else {
             tag.putString("Quest", this.base.id.toString());
         }
         tag.putInt("QuestIndex", this.questIndex);
         CompoundTag entries = new CompoundTag();
-        this.questEntries.forEach((id, entry) -> entries.put(id, QuestEntryRegistry.CODEC.encodeStart(NbtOps.INSTANCE, entry).getOrThrow(false, e -> SimpleQuests.LOGGER.error("Couldn't save quest entry" + e))));
+        this.questEntries.forEach((id, entry) -> entries.put(id, QuestEntryRegistry.CODEC.encodeStart(lookup.createSerializationContext(NbtOps.INSTANCE), entry)
+                .mapError(e -> "Couldn't save quest entry " + e).getOrThrow()));
         tag.put("QuestEntries", entries);
 
         ListTag list = new ListTag();
@@ -299,9 +300,9 @@ public class QuestProgress {
 
     public void load(CompoundTag tag, ServerPlayer player) {
         if (tag.contains("DynamicQuest")) {
-            JsonElement e = NbtOps.INSTANCE.convertTo(JsonCodecs.NullableJsonOps.INSTANCE, tag.getCompound("DynamicQuest"));
             try {
-                this.base = QuestBaseRegistry.deserializeFull(e.getAsJsonObject());
+                this.base = QuestBaseRegistry.CODEC.apply(true, true).parse(NbtOps.INSTANCE, tag.getCompound("DynamicQuest"))
+                        .getOrThrow();
             } catch (Exception ex) {
                 SimpleQuests.LOGGER.error("Couldn't reconstruct dynamic quest. Skipping");
                 throw new IllegalStateException();
@@ -318,7 +319,8 @@ public class QuestProgress {
         if (tag.contains("QuestEntries")) {
             ImmutableMap.Builder<String, QuestEntry> builder = new ImmutableMap.Builder<>();
             CompoundTag entries = tag.getCompound("QuestEntries");
-            entries.getAllKeys().forEach(key -> builder.put(key, QuestEntryRegistry.CODEC.parse(NbtOps.INSTANCE, entries.getCompound(key)).getOrThrow(false, e -> SimpleQuests.LOGGER.error("Couldn't read quest entry" + e))));
+            entries.getAllKeys().forEach(key -> builder.put(key, QuestEntryRegistry.CODEC.parse(NbtOps.INSTANCE, entries.getCompound(key))
+                    .mapError(e -> "Couldn't read quest entry" + e).getOrThrow()));
             this.questEntries = builder.build();
         } else {
             this.questEntries = this.quest.resolveTasks(player, this.questIndex);

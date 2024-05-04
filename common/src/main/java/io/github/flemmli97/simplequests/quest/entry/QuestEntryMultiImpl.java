@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.flemmli97.simplequests.JsonCodecs;
+import io.github.flemmli97.simplequests.CodecHelper;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.api.QuestEntry;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
+import net.minecraft.world.level.storage.loot.providers.number.NumberProviders;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,11 +29,11 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_item");
         public static final Codec<MultiItemEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.optionalDescriptiveList(JsonCodecs.ITEM_PREDICATE_CODEC, "predicates cant' be empty").fieldOf("predicates").forGetter(d -> d.predicate),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount),
+                instance.group(CodecHelper.optionalDescriptiveList(ItemPredicate.CODEC, "predicates cant' be empty").fieldOf("predicates").forGetter(d -> d.predicate),
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
                         Codec.BOOL.fieldOf("consumeItems").forGetter(d -> d.consumeItems),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, (pred, amount, consume, desc, player) -> new MultiItemEntry(pred, amount, desc, consume, player.orElse(null))));
 
         private final List<Either<ItemPredicate, Pair<ItemPredicate, String>>> predicate;
@@ -66,10 +67,10 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_kill");
         public static final Codec<MultiKillEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.optionalDescriptiveList(JsonCodecs.ENTITY_PREDICATE_CODEC, "predicates can't be empty").fieldOf("predicates").forGetter(d -> d.predicate),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount),
+                instance.group(CodecHelper.optionalDescriptiveList(EntityPredicate.CODEC, "predicates can't be empty").fieldOf("predicates").forGetter(d -> d.predicate),
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, MultiKillEntry::new));
 
         private final List<Either<EntityPredicate, Pair<EntityPredicate, String>>> predicate;
@@ -101,9 +102,9 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_xp");
         public static final Codec<XPRangeEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount),
+                instance.group(NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, XPRangeEntry::new));
 
         private final NumberProvider amount;
@@ -131,10 +132,10 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_advancements");
         public static final Codec<MultiAdvancementEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.nonEmptyList(ResourceLocation.CODEC, "advancements list can't be empty").fieldOf("advancements").forGetter(d -> d.advancements),
+                instance.group(CodecHelper.nonEmptyList(ResourceLocation.CODEC, "advancements list can't be empty").fieldOf("advancements").forGetter(d -> d.advancements),
                         Codec.BOOL.fieldOf("reset").forGetter(d -> d.reset),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, MultiAdvancementEntry::new));
 
         private final List<ResourceLocation> advancements;
@@ -164,10 +165,10 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_position");
         public static final Codec<MultiPositionEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.optionalDescriptiveList(JsonCodecs.BLOCK_POS_CODEC, "positions can't be empty").fieldOf("positions").forGetter(d -> d.positions),
+                instance.group(CodecHelper.optionalDescriptiveList(CodecHelper.BLOCK_POS_CODEC, "positions can't be empty").fieldOf("positions").forGetter(d -> d.positions),
                         ExtraCodecs.NON_NEGATIVE_INT.fieldOf("minDist").forGetter(d -> d.minDist),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, MultiPositionEntry::new));
 
         private final List<Either<BlockPos, Pair<BlockPos, String>>> positions;
@@ -198,9 +199,9 @@ public class QuestEntryMultiImpl {
 
         public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "multi_location");
         public static final Codec<MultiLocationEntry> CODEC = RecordCodecBuilder.create((instance) ->
-                instance.group(JsonCodecs.descriptiveList(JsonCodecs.LOCATION_PREDICATE_CODEC, "location predicates can't be empty").fieldOf("locations").forGetter(d -> d.locations),
+                instance.group(CodecHelper.descriptiveList(LocationPredicate.CODEC, "location predicates can't be empty").fieldOf("locations").forGetter(d -> d.locations),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, MultiLocationEntry::new));
 
         private final List<Pair<LocationPredicate, String>> locations;
@@ -233,12 +234,12 @@ public class QuestEntryMultiImpl {
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),
 
-                        JsonCodecs.descriptiveList(JsonCodecs.ITEM_PREDICATE_CODEC, "empty item predicates")
+                        CodecHelper.descriptiveList(ItemPredicate.CODEC, "empty item predicates")
                                 .optionalFieldOf("itemPredicates").forGetter(d -> d.heldItems.isEmpty() ? Optional.empty() : Optional.of(d.heldItems)),
-                        JsonCodecs.descriptiveList(JsonCodecs.ENTITY_PREDICATE_CODEC, "empty entity predicates")
+                        CodecHelper.descriptiveList(EntityPredicate.CODEC, "empty entity predicates")
                                 .optionalFieldOf("entityPredicates").forGetter(d -> d.entityPredicates.isEmpty() ? Optional.empty() : Optional.of(d.entityPredicates)),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount),
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, (consume, desc, taskDescription, item, pred, amount, player) -> new MultiEntityInteractEntry(item.orElse(List.of()), pred.orElse(List.of()), amount, consume, desc, taskDescription, player.orElse(null))));
 
         private final List<Pair<ItemPredicate, String>> heldItems;
@@ -281,14 +282,14 @@ public class QuestEntryMultiImpl {
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),
 
-                        JsonCodecs.ENTITY_PREDICATE_CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate)),
+                        EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate)),
                         Codec.BOOL.fieldOf("use").forGetter(d -> d.use),
 
-                        Codec.STRING.dispatch("description", Pair::getSecond, e -> Codec.pair(JsonCodecs.ITEM_PREDICATE_CODEC, Codec.unit(e))).listOf()
+                        Codec.mapPair(ItemPredicate.CODEC.fieldOf("value"), Codec.STRING.fieldOf("description")).codec().listOf()
                                 .optionalFieldOf("itemPredicates").forGetter(d -> d.heldItems.isEmpty() ? Optional.empty() : Optional.of(d.heldItems)),
-                        Codec.STRING.dispatch("description", Pair::getSecond, e -> Codec.pair(JsonCodecs.BLOCK_PREDICATE_CODEC, Codec.unit(e))).listOf()
+                        Codec.mapPair(BlockPredicate.CODEC.fieldOf("value"), Codec.STRING.fieldOf("description")).codec().listOf()
                                 .optionalFieldOf("blockPredicates").forGetter(d -> d.blockPredicates.isEmpty() ? Optional.empty() : Optional.of(d.blockPredicates)),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount)
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount)
                 ).apply(instance, (consume, allowDupes, desc, taskDescription, player, use, item, pred, amount) -> new MultiBlockInteractEntry(item.orElse(List.of()), pred.orElse(List.of()), amount, use, consume, allowDupes.orElse(false), desc, taskDescription, player.orElse(null))));
 
         private final List<Pair<ItemPredicate, String>> heldItems;
@@ -300,8 +301,8 @@ public class QuestEntryMultiImpl {
 
         public MultiBlockInteractEntry(List<Pair<ItemPredicate, String>> heldItems, List<Pair<BlockPredicate, String>> blockPredicates, NumberProvider amount, boolean use, boolean consume, boolean allowDupes, String description, String taskDescription, EntityPredicate playerPredicate) {
             super(description);
-            List<Pair<ItemPredicate, String>> held = heldItems.stream().filter(p -> p.getFirst() != ItemPredicate.ANY).toList();
-            List<Pair<BlockPredicate, String>> block = blockPredicates.stream().filter(p -> p.getFirst() != BlockPredicate.ANY).toList();
+            List<Pair<ItemPredicate, String>> held = heldItems.stream().filter(p -> p.getFirst() != null).toList();
+            List<Pair<BlockPredicate, String>> block = blockPredicates.stream().filter(p -> p.getFirst() != null).toList();
             if (held.isEmpty() && block.isEmpty())
                 throw new IllegalStateException("Either item or block has to be defined");
             this.heldItems = heldItems;
@@ -322,11 +323,11 @@ public class QuestEntryMultiImpl {
         @Override
         public QuestEntry resolve(ServerPlayer player, QuestBase base) {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
-            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.ANY, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
-            Pair<BlockPredicate, String> entity = this.blockPredicates.isEmpty() ? Pair.of(BlockPredicate.ANY, "") : this.blockPredicates.get(ctx.getRandom().nextInt(this.blockPredicates.size()));
-            while (val.getFirst() == ItemPredicate.ANY && entity.getFirst() == BlockPredicate.ANY) {
-                val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.ANY, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
-                entity = this.blockPredicates.isEmpty() ? Pair.of(BlockPredicate.ANY, "") : this.blockPredicates.get(ctx.getRandom().nextInt(this.blockPredicates.size()));
+            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(null, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
+            Pair<BlockPredicate, String> entity = this.blockPredicates.isEmpty() ? Pair.of(null, "") : this.blockPredicates.get(ctx.getRandom().nextInt(this.blockPredicates.size()));
+            while (val.getFirst() == null && entity.getFirst() == null) {
+                val = this.heldItems.isEmpty() ? Pair.of(null, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
+                entity = this.blockPredicates.isEmpty() ? Pair.of(null, "") : this.blockPredicates.get(ctx.getRandom().nextInt(this.blockPredicates.size()));
             }
             return new QuestEntryImpls.BlockInteractEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.use, this.consume, this.allowDupes, this.taskDescription, val.getSecond(), entity.getSecond(), this.playerPredicate);
         }
@@ -339,10 +340,10 @@ public class QuestEntryMultiImpl {
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),
 
-                        JsonCodecs.descriptiveList(JsonCodecs.ITEM_PREDICATE_CODEC, "item predicates can't be empty").fieldOf("itemPredicates").forGetter(d -> d.heldItems),
-                        Codec.STRING.dispatch("description", Pair::getSecond, e -> Codec.pair(JsonCodecs.ENTITY_PREDICATE_CODEC, Codec.STRING)).listOf()
+                        CodecHelper.descriptiveList(ItemPredicate.CODEC, "item predicates can't be empty").fieldOf("itemPredicates").forGetter(d -> d.heldItems),
+                        Codec.mapPair(EntityPredicate.CODEC.fieldOf("value"), Codec.STRING.fieldOf("description")).codec().listOf()
                                 .optionalFieldOf("entityPredicates").forGetter(d -> d.entityPredicates.isEmpty() ? Optional.empty() : Optional.of(d.entityPredicates)),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount)
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount)
                 ).apply(instance, (desc, taskDescription, item, pred, amount) -> new MultiCraftingEntry(item, pred.orElse(List.of()), amount, desc, taskDescription)));
 
         private final List<Pair<ItemPredicate, String>> heldItems;
@@ -366,8 +367,8 @@ public class QuestEntryMultiImpl {
         @Override
         public QuestEntry resolve(ServerPlayer player, QuestBase base) {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
-            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.ANY, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
-            Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(EntityPredicate.ANY, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
+            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.Builder.item().build(), "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
+            Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(null, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
             return new QuestEntryImpls.CraftingEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.taskDescription, val.getSecond(), entity.getSecond());
         }
     }
@@ -379,10 +380,10 @@ public class QuestEntryMultiImpl {
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),
 
-                        JsonCodecs.descriptiveList(JsonCodecs.ITEM_PREDICATE_CODEC, "item predicates can't be empty").fieldOf("itemPredicates").forGetter(d -> d.heldItems),
-                        Codec.STRING.dispatch("description", Pair::getSecond, e -> Codec.pair(JsonCodecs.ENTITY_PREDICATE_CODEC, Codec.STRING)).listOf()
+                        CodecHelper.descriptiveList(ItemPredicate.CODEC, "item predicates can't be empty").fieldOf("itemPredicates").forGetter(d -> d.heldItems),
+                        Codec.mapPair(EntityPredicate.CODEC.fieldOf("value"), Codec.STRING.fieldOf("description")).codec().listOf()
                                 .optionalFieldOf("entityPredicates").forGetter(d -> d.entityPredicates.isEmpty() ? Optional.empty() : Optional.of(d.entityPredicates)),
-                        JsonCodecs.NUMER_PROVIDER_CODEC.fieldOf("amount").forGetter(d -> d.amount)
+                        NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount)
                 ).apply(instance, (desc, taskDescription, item, pred, amount) -> new MultiFishingEntry(item, pred.orElse(List.of()), amount, desc, taskDescription)));
 
         private final List<Pair<ItemPredicate, String>> heldItems;
@@ -406,8 +407,8 @@ public class QuestEntryMultiImpl {
         @Override
         public QuestEntry resolve(ServerPlayer player, QuestBase base) {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
-            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.ANY, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
-            Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(EntityPredicate.ANY, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
+            Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.Builder.item().build(), "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
+            Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(null, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
             return new QuestEntryImpls.FishingEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.taskDescription, val.getSecond(), entity.getSecond());
         }
     }

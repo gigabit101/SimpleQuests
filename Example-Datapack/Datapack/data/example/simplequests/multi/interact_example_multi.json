@@ -19,9 +19,7 @@
         {
           "description": "nametag",
           "value": {
-            "items": [
-              "minecraft:name_tag"
-            ]
+            "items": "minecraft:name_tag"
           }
         }
       ],
@@ -40,9 +38,9 @@
         }
       ],
       "amount": {
-        "type": "minecraft:uniform",
-        "min": 3,
-        "max": 6
+        "min": 3.0,
+        "max": 6.0,
+        "type": "minecraft:uniform"
       },
       "consume": true,
       "description": "Use a nametag on either a cow/chicken 3-6 times",

@@ -3,6 +3,7 @@ package io.github.flemmli97.simplequests.datapack;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.MapCodec;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.api.QuestEntry;
 import io.github.flemmli97.simplequests.quest.entry.QuestEntryImpls;
@@ -16,7 +17,7 @@ public class QuestEntryRegistry {
 
     private static final Map<ResourceLocation, Codec<QuestEntry>> MAP = new HashMap<>();
     public static final Codec<QuestEntry> CODEC = ResourceLocation.CODEC
-            .dispatch("id", QuestEntry::getId, MAP::get);
+            .dispatch("id", QuestEntry::getId, id -> MapCodec.assumeMapUnsafe(MAP.get(id)));
 
     public static void register() {
         registerSerializer(QuestEntryImpls.ItemEntry.ID, QuestEntryImpls.ItemEntry.CODEC);
@@ -55,7 +56,10 @@ public class QuestEntryRegistry {
     public static QuestEntry deserialize(ResourceLocation res, JsonObject obj) {
         Codec<QuestEntry> d = MAP.get(res);
         if (d != null)
-            return d.parse(JsonOps.INSTANCE, obj).getOrThrow(false, e -> SimpleQuests.LOGGER.error("Couldn't deserialize QuestEntry from json " + e));
+            return d.parse(JsonOps.INSTANCE, obj).getOrThrow(e -> {
+                SimpleQuests.LOGGER.error("Couldn't deserialize QuestEntry from json " + e);
+                return new IllegalStateException(e);
+            });
         throw new IllegalStateException("Missing entry for key " + res);
     }
 }

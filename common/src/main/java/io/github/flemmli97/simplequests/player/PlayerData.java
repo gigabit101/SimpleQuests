@@ -12,6 +12,7 @@ import io.github.flemmli97.simplequests.quest.entry.QuestEntryImpls;
 import io.github.flemmli97.simplequests.quest.types.Quest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -384,10 +386,10 @@ public class PlayerData {
         return String.format("%ds", sec);
     }
 
-    public CompoundTag save() {
+    public CompoundTag save(MinecraftServer server) {
         CompoundTag tag = new CompoundTag();
         ListTag quests = new ListTag();
-        this.currentQuests.forEach(prog -> quests.add(prog.save()));
+        this.currentQuests.forEach(prog -> quests.add(prog.save(server.registryAccess())));
         tag.put("ActiveQuests", quests);
         CompoundTag list = new CompoundTag();
         this.cooldownTracker.forEach((res, time) -> list.putLong(res.toString(), time));

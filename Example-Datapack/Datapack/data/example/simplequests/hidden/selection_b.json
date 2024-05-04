@@ -19,9 +19,7 @@
       "amount": 15,
       "consumeItems": true,
       "predicate": {
-        "items": [
-          "minecraft:granite"
-        ]
+        "items": "minecraft:granite"
       },
       "description": "Give 15 granite",
       "id": "simplequests:item"

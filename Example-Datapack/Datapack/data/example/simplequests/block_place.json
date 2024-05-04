@@ -18,9 +18,7 @@
       "amount": 3,
       "use": true,
       "item": {
-        "items": [
-          "minecraft:emerald_block"
-        ]
+        "items": "minecraft:emerald_block"
       },
       "consumeItem": false,
       "description": "Place 3 emerald blocks",

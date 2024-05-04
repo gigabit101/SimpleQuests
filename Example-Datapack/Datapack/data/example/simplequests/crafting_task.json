@@ -16,9 +16,7 @@
   "entries": {
     "sticks": {
       "item": {
-        "items": [
-          "minecraft:stick"
-        ]
+        "items": "minecraft:stick"
       },
       "amount": 3,
       "description": "Craft at 8 sticks",

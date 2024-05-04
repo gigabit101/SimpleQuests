@@ -1,3 +1,11 @@
+Simple Quests 1.5.5
+================
+- Update to 1.20.6: Due to internal changes your datapacks most likely will not work anymore.
+  - Item Predicates need to be updated due to nbt no longer being a thing
+  - For quest icons: "item" has been renamed to "id"
+  - For Location Predicates "structure" has been renamed to "structures"
+  - The quest generator already reflects those changes
+
 Simple Quests 1.5.4
 ================
 - Fix nullpointer with some predicates

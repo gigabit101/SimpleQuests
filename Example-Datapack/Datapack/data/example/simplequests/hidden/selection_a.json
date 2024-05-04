@@ -19,9 +19,7 @@
       "amount": 15,
       "consumeItems": true,
       "predicate": {
-        "items": [
-          "minecraft:andesite"
-        ]
+        "items": "minecraft:andesite"
       },
       "description": "Give 15 andesite",
       "id": "simplequests:item"

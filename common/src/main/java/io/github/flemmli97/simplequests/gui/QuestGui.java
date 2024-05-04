@@ -10,11 +10,8 @@ import io.github.flemmli97.simplequests.quest.types.CompositeQuest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -32,14 +29,19 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
+
+    public static final String STACK_NBT_ID = "SimpleQuestsQuest";
 
     public static int QUEST_PER_PAGE = 12;
 
@@ -89,34 +91,34 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
         PlayerData data = PlayerData.get(player);
         PlayerData.AcceptType type = data.canAcceptQuest(quest);
         ItemStack stack = type == PlayerData.AcceptType.ACCEPT ? quest.getIcon() : new ItemStack(Items.BOOK);
-        stack.setHoverName(quest.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
-        ListTag lore = new ListTag();
-        quest.getDescription(player).forEach(c -> lore.add(StringTag.valueOf(Component.Serializer.toJson(c.setStyle(c.getStyle().withItalic(false))))));
+        stack.set(DataComponents.CUSTOM_NAME, quest.getTask(player).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.GOLD)));
+        List<Component> lore = new ArrayList<>();
+        quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
             stack.enchant(Enchantments.UNBREAKING, 1);
-            stack.hideTooltipPart(ItemStack.TooltipPart.ENCHANTMENTS);
+            stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
         }
         if (type == PlayerData.AcceptType.DELAY) {
-            lore.add(StringTag.valueOf(Component.Serializer.toJson(Component.translatable(ConfigHandler.LANG.get(player, type.langKey()), data.formattedCooldown(quest)).withStyle(ChatFormatting.DARK_RED))));
+            lore.add(Component.translatable(ConfigHandler.LANG.get(player, type.langKey()), data.formattedCooldown(quest)).withStyle(ChatFormatting.DARK_RED));
             this.updateList.put(i, quest);
         }
         for (MutableComponent comp : quest.getFormattedGuiTasks(player))
-            lore.add(StringTag.valueOf(Component.Serializer.toJson(comp.setStyle(comp.getStyle().withItalic(false)))));
+            lore.add(comp.setStyle(comp.getStyle().withItalic(false)));
         MutableComponent requirement = switch (type) {
             case REQUIREMENTS, ONETIME, DAILYFULL, LOCKED ->
                     Component.translatable(ConfigHandler.LANG.get(player, type.langKey())).withStyle(ChatFormatting.DARK_RED);
             default -> null;
         };
         if (requirement != null)
-            lore.add(StringTag.valueOf(Component.Serializer.toJson(requirement.setStyle(requirement.getStyle().withItalic(false)))));
-        stack.getOrCreateTagElement("display").put("Lore", lore);
-        stack.getOrCreateTagElement("SimpleQuests").putString("Quest", quest.id.toString());
+            lore.add(requirement.setStyle(requirement.getStyle().withItalic(false)));
+        stack.set(DataComponents.LORE, new ItemLore(lore));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> t.putString(QuestGui.STACK_NBT_ID, quest.id.toString()));
         return stack;
     }
 
     public static ItemStack emptyFiller() {
         ItemStack stack = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
-        stack.setHoverName(Component.literal(""));
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(""));
         return stack;
     }
 
@@ -153,16 +155,16 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
                 ItemStack stack = emptyFiller();
                 if (page > 0) {
                     stack = new ItemStack(Items.ARROW);
-                    stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                    stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 }
                 inv.updateStack(i, stack);
             } else if (i == 8 && page < this.maxPages) {
                 ItemStack close = new ItemStack(Items.ARROW);
-                close.setHoverName(Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                close.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 inv.updateStack(i, close);
             } else if (data.canGoBack() && i == 45) {
                 ItemStack stack = new ItemStack(Items.TNT);
-                stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(serverPlayer, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 inv.updateStack(i, stack);
             } else if (i < 9 || i > 44 || i % 9 == 0 || i % 9 == 8)
                 inv.updateStack(i, emptyFiller());
@@ -187,19 +189,19 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
                 ItemStack stack = emptyFiller();
                 if (this.page > 0) {
                     stack = new ItemStack(Items.ARROW);
-                    stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                    stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.previous")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 }
                 this.slots.get(i).set(stack);
             } else if (i == 8) {
                 ItemStack stack = emptyFiller();
                 if (this.page < this.maxPages) {
                     stack = new ItemStack(Items.ARROW);
-                    stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                    stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.next")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 }
                 this.slots.get(i).set(stack);
             } else if (this.canGoBack && i == 45) {
                 ItemStack stack = new ItemStack(Items.TNT);
-                stack.setHoverName(Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
+                stack.set(DataComponents.CUSTOM_NAME, Component.translatable(ConfigHandler.LANG.get(this.player, "simplequests.gui.button.main")).setStyle(Style.EMPTY.withItalic(false).applyFormat(ChatFormatting.WHITE)));
                 this.slots.get(i).set(stack);
             } else if (i < 9 || i > 44 || i % 9 == 0 || i % 9 == 8)
                 this.slots.get(i).set(emptyFiller());
@@ -235,16 +237,17 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
             return true;
         }
         ItemStack stack = slot.getItem();
-        if (!stack.hasTag())
-            return false;
-        CompoundTag tag = stack.getTag().getCompound("SimpleQuests");
-        if (!tag.contains("Quest"))
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null)
             return false;
         if (stack.getItem() == Items.BOOK) {
             playSongToPlayer(player, SoundEvents.VILLAGER_NO, 1, 1f);
             return false;
         }
-        ResourceLocation id = new ResourceLocation(tag.getString("Quest"));
+        Optional<ResourceLocation> opt = customData.read(ResourceLocation.CODEC.fieldOf(QuestGui.STACK_NBT_ID)).result();
+        if (opt.isEmpty())
+            return false;
+        ResourceLocation id = opt.get();
         QuestBase quest = QuestsManager.instance().getQuestsForCategory(this.category).get(id);
         if (quest == null) {
             SimpleQuests.LOGGER.error("No such quest " + id);
@@ -307,9 +310,12 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
         });
         this.updateList.forEach((i, q) -> {
             ItemStack stack = this.slots.get(i).getItem();
-            ListTag tag = stack.getOrCreateTagElement("display").getList("Lore", Tag.TAG_STRING);
             String delay = data.formattedCooldown(q);
-            tag.set(0, StringTag.valueOf(Component.Serializer.toJson(Component.translatable(ConfigHandler.LANG.get(this.player, PlayerData.AcceptType.DELAY.langKey()), delay).withStyle(ChatFormatting.DARK_RED))));
+            stack.update(DataComponents.LORE, ItemLore.EMPTY, l -> {
+                List<Component> lore = new ArrayList<>(l.lines());
+                lore.set(0, Component.translatable(ConfigHandler.LANG.get(this.player, PlayerData.AcceptType.DELAY.langKey()), delay).withStyle(ChatFormatting.DARK_RED));
+                return new ItemLore(lore);
+            });
             if (delay.equals("0s"))
                 this.toremove.add(i);
         });

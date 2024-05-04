@@ -6,10 +6,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
+import com.mojang.serialization.JsonOps;
+import io.github.flemmli97.simplequests.datapack.QuestBaseRegistry;
 import io.github.flemmli97.simplequests.datapack.QuestsManager;
 import io.github.flemmli97.simplequests.quest.QuestCategory;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -37,6 +40,7 @@ public abstract class QuestProvider implements DataProvider {
 
     protected final PackOutput output;
     protected final boolean full;
+    private final CompletableFuture<HolderLookup.Provider> lookup;
 
     /**
      * Datagenerator for quests
@@ -44,28 +48,35 @@ public abstract class QuestProvider implements DataProvider {
      * @param full If true will output all values for category and quests.
      *             Some values are optional and can be left out in the final json.
      */
-    public QuestProvider(PackOutput output, boolean full) {
+    public QuestProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup, boolean full) {
         this.output = output;
+        this.lookup = lookup;
         this.full = full;
     }
 
-    protected abstract void add();
+    protected abstract void add(HolderLookup.Provider provider);
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
-        this.add();
-        return CompletableFuture.allOf(
+        return this.lookup.thenApply(provider -> {
+            this.add(provider);
+            return provider;
+        }).thenCompose(provider -> CompletableFuture.allOf(
                 CompletableFuture.allOf(this.categories.entrySet().stream().map(entry -> {
                     Path path = this.output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(entry.getKey().getNamespace() + "/" + QuestsManager.CATEGORY_LOCATION + "/" + entry.getKey().getPath() + ".json");
-                    JsonElement obj = entry.getValue().serialize(this.full);
+                    JsonElement obj = QuestCategory.CODEC.apply(this.full)
+                            .encodeStart(provider.createSerializationContext(JsonOps.INSTANCE), entry.getValue())
+                            .getOrThrow();
                     return saveStable(cache, obj, path);
                 }).toArray(CompletableFuture<?>[]::new)),
                 CompletableFuture.allOf(this.quests.entrySet().stream().map(entry -> {
                     Path path = this.output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(entry.getKey().getNamespace() + "/" + QuestsManager.QUEST_LOCATION + "/" + entry.getKey().getPath() + ".json");
-                    JsonElement obj = entry.getValue().serialize(false, this.full);
+                    JsonElement obj = QuestBaseRegistry.CODEC.apply(false, this.full)
+                            .encodeStart(provider.createSerializationContext(JsonOps.INSTANCE), entry.getValue())
+                            .getOrThrow();
                     return saveStable(cache, obj, path);
                 }).toArray(CompletableFuture<?>[]::new))
-        );
+        ));
     }
 
     @Override
@@ -73,7 +84,7 @@ public abstract class QuestProvider implements DataProvider {
         return "Quests";
     }
 
-    public void addQuest(QuestBase.BuilderBase<?> builder) {
+    public void addQuest(QuestBase.BuilderBase<?, ?> builder) {
         QuestBase quest = builder.build();
         if (quest.category != QuestCategory.DEFAULT_CATEGORY) {
             QuestCategory prev = this.categories.get(quest.category.id);

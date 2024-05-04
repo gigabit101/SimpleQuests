@@ -4,11 +4,7 @@
   "parent_id": [],
   "redo_parent": false,
   "need_unlock": false,
-  "icon": {
-    "item": "minecraft:diamond_sword",
-    "count": 1,
-    "tag": "{Damage:0}"
-  },
+  "icon": "minecraft:diamond_sword",
   "repeat_delay": "1w",
   "repeat_daily": 0,
   "sorting_id": 0,
@@ -27,10 +23,10 @@
     },
     "zombies_baby": {
       "predicate": {
-        "type": "minecraft:zombie",
         "flags": {
           "is_baby": true
-        }
+        },
+        "type": "minecraft:zombie"
       },
       "amount": 3,
       "id": "simplequests:entity"

@@ -6,7 +6,6 @@ import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.api.SimpleQuestAPI;
 import io.github.flemmli97.simplequests.config.ConfigHandler;
 import io.github.flemmli97.simplequests.fabric.client.FabricClientHandler;
-import io.github.flemmli97.simplequests.network.SQPacket;
 import io.github.flemmli97.simplequests.player.QuestProgress;
 import io.github.flemmli97.simplequests.quest.entry.QuestEntryImpls;
 import io.github.flemmli97.simplequests.quest.types.Quest;
@@ -14,12 +13,10 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -30,11 +27,6 @@ public class LoaderImpl implements LoaderHandler {
     @Override
     public Path getConfigPath() {
         return FabricLoader.getInstance().getConfigDir();
-    }
-
-    @Override
-    public ResourceLocation fromEntity(Entity entity) {
-        return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
     }
 
     @Override
@@ -105,7 +97,7 @@ public class LoaderImpl implements LoaderHandler {
     }
 
     @Override
-    public void sendToServer(SQPacket packet) {
-        FabricClientHandler.sendToServer(packet);
+    public void sendToServer(CustomPacketPayload pkt) {
+        FabricClientHandler.sendNotificationPkt(pkt);
     }
 }

@@ -18,9 +18,7 @@
       "amount": 5,
       "consumeItems": true,
       "predicate": {
-        "items": [
-          "minecraft:cod"
-        ]
+        "items": "minecraft:cod"
       },
       "description": "Give 5 cods",
       "id": "simplequests:item"

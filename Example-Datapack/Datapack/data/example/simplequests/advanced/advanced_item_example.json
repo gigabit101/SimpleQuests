@@ -18,18 +18,18 @@
       "amount": 1,
       "consumeItems": true,
       "predicate": {
-        "items": [
-          "minecraft:diamond_sword"
-        ],
-        "enchantments": [
-          {
-            "enchantment": "minecraft:sharpness",
-            "levels": {
-              "min": 2,
-              "max": 3
+        "items": "minecraft:diamond_sword",
+        "predicates": {
+          "minecraft:enchantments": [
+            {
+              "enchantment": "minecraft:sharpness",
+              "levels": {
+                "min": 2,
+                "max": 3
+              }
             }
-          }
-        ]
+          ]
+        }
       },
       "description": "Give 1 diamond sword with sharp 2 or 3",
       "id": "simplequests:item"
