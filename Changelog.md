@@ -1,3 +1,22 @@
+Simple Quests 1.5.5
+================
+- Implement amount multiplier for multi quest entries (if applicable).
+  - Define it in the amount field in json with type `simplequests:context_multiplier`. 
+  - The original amount will be multiplied by the multiplier * amount of times the quest was completed.  
+    `final amount = amount * (1 + multiplier * times completed)`
+  - E.g.
+    - ```json
+      "amount": {
+        "type": "simplequests:context_multiplier",
+        "multiplier": 1,
+        "max": 10
+        "value": {
+            "type": "minecraft:uniform",
+            "min": 10,
+            "max": 15
+        }
+      },```
+      
 Simple Quests 1.5.4
 ================
 - Fix nullpointer with some predicates

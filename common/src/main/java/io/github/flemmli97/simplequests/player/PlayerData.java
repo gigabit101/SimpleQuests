@@ -59,6 +59,8 @@ public class PlayerData {
     private final Map<ResourceLocation, Integer> dailyQuestsTracker = new HashMap<>();
     private final Map<ResourceLocation, Integer> dailyQuestsCategoryTracker = new HashMap<>();
 
+    private final Map<ResourceLocation, Integer> finishedQuestsTracker = new HashMap<>();
+
     private int interactionCooldown;
 
     /**
@@ -203,6 +205,7 @@ public class PlayerData {
             this.cooldownTracker.put(id, this.player.level().getGameTime());
             this.unlockTracker.add(id);
             this.dailyQuestsTracker.compute(id, (key, i) -> i == null ? 1 : ++i);
+            this.finishedQuestsTracker.compute(id, (key, i) -> i == null ? 1 : ++i);
         });
         this.dailyQuestsTracker.compute(prog.getQuest().category.id, (key, i) -> i == null ? 1 : ++i);
         this.player.level().playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), SoundEvents.PLAYER_LEVELUP, this.player.getSoundSource(), 2 * 0.75f, 1.0f);
@@ -312,6 +315,10 @@ public class PlayerData {
         this.unlockTracker.remove(quest);
     }
 
+    public int getTimesCompleted(ResourceLocation quest) {
+        return this.finishedQuestsTracker.getOrDefault(quest, 0);
+    }
+
     public void tickTickableQuests(String trigger) {
         List<QuestProgress> completed = new ArrayList<>();
         this.tickables.removeIf(prog -> {
@@ -400,6 +407,9 @@ public class PlayerData {
         CompoundTag dailyCategory = new CompoundTag();
         this.dailyQuestsCategoryTracker.forEach((res, amount) -> dailyCategory.putInt(res.toString(), amount));
         tag.put("DailyQuestCategoryTracker", dailyCategory);
+        CompoundTag total = new CompoundTag();
+        this.finishedQuestsTracker.forEach((res, amount) -> total.putInt(res.toString(), amount));
+        tag.put("FinishedQuestTracker", total);
         ListTag unlocked = new ListTag();
         this.unlockTracker.forEach(res -> unlocked.add(StringTag.valueOf(res.toString())));
         tag.put("UnlockedQuests", unlocked);
@@ -426,6 +436,8 @@ public class PlayerData {
         daily.getAllKeys().forEach(key -> this.dailyQuestsTracker.put(new ResourceLocation(key), done.getInt(key)));
         CompoundTag dailyCategory = tag.getCompound("DailyQuestCategoryTracker");
         dailyCategory.getAllKeys().forEach(key -> this.dailyQuestsCategoryTracker.put(new ResourceLocation(key), done.getInt(key)));
+        CompoundTag total = tag.getCompound("FinishedQuestTracker");
+        total.getAllKeys().forEach(key -> this.finishedQuestsTracker.put(new ResourceLocation(key), done.getInt(key)));
         ListTag unlocked = tag.getList("UnlockedQuests", Tag.TAG_STRING);
         unlocked.forEach(t -> this.unlockTracker.add(new ResourceLocation(t.getAsString())));
     }
@@ -439,6 +451,7 @@ public class PlayerData {
         this.dailyQuestsTracker.putAll(data.dailyQuestsTracker);
         this.dailyQuestsCategoryTracker.clear();
         this.dailyQuestsCategoryTracker.putAll(data.dailyQuestsCategoryTracker);
+        this.finishedQuestsTracker.putAll(data.finishedQuestsTracker);
         this.hasClient = data.hasClient;
     }
 
@@ -450,6 +463,7 @@ public class PlayerData {
         this.questTrackerTime = null;
         this.dailyQuestsTracker.clear();
         this.dailyQuestsCategoryTracker.clear();
+        this.finishedQuestsTracker.clear();
     }
 
     public void resetCooldown() {

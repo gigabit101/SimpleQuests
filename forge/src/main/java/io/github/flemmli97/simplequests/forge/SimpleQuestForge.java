@@ -10,11 +10,13 @@ import io.github.flemmli97.simplequests.datapack.QuestsManager;
 import io.github.flemmli97.simplequests.forge.client.ForgeClientHandler;
 import io.github.flemmli97.simplequests.network.PacketRegistrar;
 import io.github.flemmli97.simplequests.player.PlayerData;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.data.GlobalLootModifierProvider;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -32,6 +34,8 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -51,6 +55,7 @@ public class SimpleQuestForge {
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> "*", (s1, s2) -> true));
         SimpleQuests.updateLoaderImpl(new LoaderImpl());
         FMLJavaModLoadingContext.get().getModEventBus().addListener(SimpleQuestForge::commonSetup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(SimpleQuestForge::registry);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::addReload);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::command);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::kill);
@@ -64,6 +69,11 @@ public class SimpleQuestForge {
         ProgressionTrackerRegistry.register();
         ConfigHandler.init();
         SimpleQuests.FTB_RANKS = ModList.get().isLoaded("ftbranks");
+    }
+
+    public static void registry(RegisterEvent event) {
+        if (event.getRegistryKey().equals(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS))
+            QuestNumberProvider.init();
     }
 
     public static void commonSetup(FMLCommonSetupEvent event) {
