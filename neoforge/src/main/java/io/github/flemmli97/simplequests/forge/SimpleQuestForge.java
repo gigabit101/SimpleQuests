@@ -10,7 +10,10 @@ import io.github.flemmli97.simplequests.datapack.QuestsManager;
 import io.github.flemmli97.simplequests.forge.client.ForgeClientHandler;
 import io.github.flemmli97.simplequests.network.C2SNotify;
 import io.github.flemmli97.simplequests.player.PlayerData;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.IEventBus;
@@ -25,13 +28,19 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 @Mod(value = SimpleQuests.MODID)
 public class SimpleQuestForge {
 
+    private static final DeferredRegister<LootNumberProviderType> NUMBER_PROVIDERS = DeferredRegister.create(BuiltInRegistries.LOOT_NUMBER_PROVIDER_TYPE, SimpleQuests.MODID);
+    public static final DeferredHolder<LootNumberProviderType, LootNumberProviderType> CONTEXT_MULTIPLIER = NUMBER_PROVIDERS.register("context_multiplier", () -> new LootNumberProviderType(QuestNumberProvider.ContextMultiplierNumberProvider.CODEC));
+
     public SimpleQuestForge(IEventBus modBus) {
         SimpleQuests.updateLoaderImpl(new LoaderImpl());
         modBus.addListener(SimpleQuestForge::registerPackets);
+        NUMBER_PROVIDERS.register(modBus);
         NeoForge.EVENT_BUS.addListener(SimpleQuestForge::addReload);
         NeoForge.EVENT_BUS.addListener(SimpleQuestForge::command);
         NeoForge.EVENT_BUS.addListener(SimpleQuestForge::kill);

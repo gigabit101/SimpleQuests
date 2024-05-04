@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,6 +28,11 @@ public class LoaderImpl implements LoaderHandler {
     @Override
     public Path getConfigPath() {
         return FabricLoader.getInstance().getConfigDir();
+    }
+
+    @Override
+    public LootNumberProviderType getQuestContextProvider() {
+        return SimpleQuestsFabric.CONTEXT_MULTIPLIER;
     }
 
     @Override

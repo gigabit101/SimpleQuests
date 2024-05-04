@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -28,6 +29,11 @@ public class LoaderImpl implements LoaderHandler {
     @Override
     public Path getConfigPath() {
         return FMLPaths.CONFIGDIR.get();
+    }
+
+    @Override
+    public LootNumberProviderType getQuestContextProvider() {
+        return SimpleQuestForge.CONTEXT_MULTIPLIER.get();
     }
 
     @Override

@@ -8,6 +8,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.List;
 public interface LoaderHandler {
 
     Path getConfigPath();
+
+    LootNumberProviderType getQuestContextProvider();
 
     default boolean hasPerm(CommandSourceStack src, String perm) {
         return this.hasPerm(src, perm, false);

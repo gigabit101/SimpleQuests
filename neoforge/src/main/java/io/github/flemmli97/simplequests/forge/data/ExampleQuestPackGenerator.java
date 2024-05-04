@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.datapack.provider.QuestProvider;
 import io.github.flemmli97.simplequests.quest.QuestCategory;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
 import io.github.flemmli97.simplequests.quest.entry.QuestEntryImpls;
 import io.github.flemmli97.simplequests.quest.entry.QuestEntryMultiImpl;
 import io.github.flemmli97.simplequests.quest.types.CompositeQuest;
@@ -128,6 +129,15 @@ public class ExampleQuestPackGenerator extends QuestProvider {
                 .addTaskEntry("fish", new QuestEntryMultiImpl.MultiItemEntry(List.of(
                         Either.left(ItemPredicate.Builder.item().of(Items.SALMON).build()),
                         Either.right(Pair.of(ItemPredicate.Builder.item().of(Items.COD).build(), "cod"))), UniformGenerator.between(10, 15), "Give 10-15 cods or salmon", true, null)));
+        this.addQuest(new Quest.Builder(new ResourceLocation("example", "multi/item_example_multi_increase"),
+                "Example for an item quest that increases in difficulty the more times you complete it",
+                new ResourceLocation("chests/abandoned_mineshaft"))
+                .setRepeatDelay(36000)
+                .withIcon(new ItemStack(Items.COD))
+                .addDescription("This is an example description")
+                .addDescription("This is another example description")
+                .addTaskEntry("fish", new QuestEntryMultiImpl.MultiItemEntry(List.of(
+                        Either.right(Pair.of(ItemPredicate.Builder.item().of(Items.COD).build(), "cod"))), new QuestNumberProvider.ContextMultiplierNumberProvider(UniformGenerator.between(10, 15), 1, 10), "Give 10-15 * amount of quest completed cods or salmon", true, null)));
 
         //Kill example
         this.addQuest(new Quest.Builder(new ResourceLocation("example", "kill_example"),

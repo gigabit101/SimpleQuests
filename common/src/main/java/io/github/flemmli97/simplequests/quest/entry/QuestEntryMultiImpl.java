@@ -7,6 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.flemmli97.simplequests.CodecHelper;
 import io.github.flemmli97.simplequests.SimpleQuests;
 import io.github.flemmli97.simplequests.api.QuestEntry;
+import io.github.flemmli97.simplequests.player.PlayerData;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.advancements.critereon.BlockPredicate;
 import net.minecraft.advancements.critereon.EntityPredicate;
@@ -17,6 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProviders;
 
@@ -59,7 +62,7 @@ public class QuestEntryMultiImpl {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
             Either<ItemPredicate, Pair<ItemPredicate, String>> val = this.predicate.get(ctx.getRandom().nextInt(this.predicate.size()));
             return new QuestEntryImpls.ItemEntry(val.map(e -> e, Pair::getFirst),
-                    this.amount.getInt(ctx), val.map(e -> "", Pair::getSecond), this.consumeItems, this.playerPredicate);
+                    getAmount(this.amount, ctx, base.id), val.map(e -> "", Pair::getSecond), this.consumeItems, this.playerPredicate);
         }
     }
 
@@ -94,7 +97,7 @@ public class QuestEntryMultiImpl {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
             Either<EntityPredicate, Pair<EntityPredicate, String>> val = this.predicate.get(ctx.getRandom().nextInt(this.predicate.size()));
             return new QuestEntryImpls.KillEntry(val.map(e -> e, Pair::getFirst),
-                    this.amount.getInt(ctx), val.map(e -> "", Pair::getSecond), this.playerPredicate);
+                    getAmount(this.amount, ctx, base.id), val.map(e -> "", Pair::getSecond), this.playerPredicate);
         }
     }
 
@@ -124,7 +127,7 @@ public class QuestEntryMultiImpl {
         @Override
         public QuestEntry resolve(ServerPlayer player, QuestBase base) {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
-            return new QuestEntryImpls.XPEntry(this.amount.getInt(ctx), this.playerPredicate);
+            return new QuestEntryImpls.XPEntry(getAmount(this.amount, ctx, base.id), this.playerPredicate);
         }
     }
 
@@ -269,7 +272,7 @@ public class QuestEntryMultiImpl {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
             Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(null, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
             Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(null, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
-            return new QuestEntryImpls.EntityInteractEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.consume, this.taskDescription, val.getSecond(), entity.getSecond(), this.playerPredicate);
+            return new QuestEntryImpls.EntityInteractEntry(val.getFirst(), entity.getFirst(), getAmount(this.amount, ctx, base.id), this.consume, this.taskDescription, val.getSecond(), entity.getSecond(), this.playerPredicate);
         }
     }
 
@@ -329,7 +332,7 @@ public class QuestEntryMultiImpl {
                 val = this.heldItems.isEmpty() ? Pair.of(null, "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
                 entity = this.blockPredicates.isEmpty() ? Pair.of(null, "") : this.blockPredicates.get(ctx.getRandom().nextInt(this.blockPredicates.size()));
             }
-            return new QuestEntryImpls.BlockInteractEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.use, this.consume, this.allowDupes, this.taskDescription, val.getSecond(), entity.getSecond(), this.playerPredicate);
+            return new QuestEntryImpls.BlockInteractEntry(val.getFirst(), entity.getFirst(), getAmount(this.amount, ctx, base.id), this.use, this.consume, this.allowDupes, this.taskDescription, val.getSecond(), entity.getSecond(), this.playerPredicate);
         }
     }
 
@@ -369,7 +372,7 @@ public class QuestEntryMultiImpl {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
             Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.Builder.item().build(), "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
             Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(null, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
-            return new QuestEntryImpls.CraftingEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.taskDescription, val.getSecond(), entity.getSecond());
+            return new QuestEntryImpls.CraftingEntry(val.getFirst(), entity.getFirst(), getAmount(this.amount, ctx, base.id), this.taskDescription, val.getSecond(), entity.getSecond());
         }
     }
 
@@ -409,7 +412,16 @@ public class QuestEntryMultiImpl {
             LootContext ctx = SimpleQuests.createContext(player, player, base.id);
             Pair<ItemPredicate, String> val = this.heldItems.isEmpty() ? Pair.of(ItemPredicate.Builder.item().build(), "") : this.heldItems.get(ctx.getRandom().nextInt(this.heldItems.size()));
             Pair<EntityPredicate, String> entity = this.entityPredicates.isEmpty() ? Pair.of(null, "") : this.entityPredicates.get(ctx.getRandom().nextInt(this.entityPredicates.size()));
-            return new QuestEntryImpls.FishingEntry(val.getFirst(), entity.getFirst(), this.amount.getInt(ctx), this.taskDescription, val.getSecond(), entity.getSecond());
+            return new QuestEntryImpls.FishingEntry(val.getFirst(), entity.getFirst(), getAmount(this.amount, ctx, base.id), this.taskDescription, val.getSecond(), entity.getSecond());
         }
+    }
+
+    private static int getAmount(NumberProvider provider, LootContext ctx, ResourceLocation quest) {
+        if (!(provider instanceof QuestNumberProvider.ContextMultiplierNumberProvider mult))
+            return provider.getInt(ctx);
+        return Math.round(mult.getFloatWith(ctx, () -> {
+            ServerPlayer player = (ServerPlayer) ctx.getParamOrNull(LootContextParams.THIS_ENTITY);
+            return (float) PlayerData.get(player).getTimesCompleted(quest);
+        }));
     }
 }

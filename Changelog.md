@@ -1,11 +1,30 @@
-Simple Quests 1.5.5
+Simple Quests 1.5.6
 ================
 - Update to 1.20.6: Due to internal changes your datapacks most likely will not work anymore.
   - Item Predicates need to be updated due to nbt no longer being a thing
   - For quest icons: "item" has been renamed to "id"
   - For Location Predicates "structure" has been renamed to "structures"
   - The quest generator already reflects those changes
-
+  
+Simple Quests 1.5.5
+================
+- Implement amount multiplier for multi quest entries (if applicable).
+  - Define it in the amount field in json with type `simplequests:context_multiplier`. 
+  - The original amount will be multiplied by the multiplier * amount of times the quest was completed.  
+    `final amount = amount * (1 + multiplier * times completed)`
+  - E.g.
+    - ```json
+      "amount": {
+        "type": "simplequests:context_multiplier",
+        "multiplier": 1,
+        "max": 10
+        "value": {
+            "type": "minecraft:uniform",
+            "min": 10,
+            "max": 15
+        }
+      },```
+      
 Simple Quests 1.5.4
 ================
 - Fix nullpointer with some predicates
