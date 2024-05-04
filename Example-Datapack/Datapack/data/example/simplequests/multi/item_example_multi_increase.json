@@ -1,0 +1,47 @@
+{
+  "task": "Example for an item quest that increases in difficulty the more times you complete it",
+  "description": [
+    "This is an example description",
+    "This is another example description"
+  ],
+  "parent_id": [],
+  "redo_parent": false,
+  "need_unlock": false,
+  "icon": "minecraft:cod",
+  "repeat_delay": 36000,
+  "repeat_daily": 0,
+  "sorting_id": 0,
+  "daily_quest": false,
+  "visibility": "DEFAULT",
+  "loot_table": "minecraft:chests/abandoned_mineshaft",
+  "command": "",
+  "submission_trigger": "",
+  "entries": {
+    "fish": {
+      "consumeItems": true,
+      "description": "Give 10-15 * amount of quest completed cods or salmon",
+      "predicates": [
+        {
+          "description": "cod",
+          "value": {
+            "items": [
+              "minecraft:cod"
+            ]
+          }
+        }
+      ],
+      "amount": {
+        "type": "simplequests:context_multiplier",
+        "multiplier": 1,
+        "max": 10,
+        "value": {
+          "type": "minecraft:uniform",
+          "min": 10,
+          "max": 15
+        }
+      },
+      "id": "simplequests:multi_item"
+    }
+  },
+  "type": "simplequests:quest"
+}

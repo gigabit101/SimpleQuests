@@ -6,8 +6,8 @@ import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-
 import org.jetbrains.annotations.Nullable;
+
 import java.util.function.Predicate;
 
 public interface QuestEntry {

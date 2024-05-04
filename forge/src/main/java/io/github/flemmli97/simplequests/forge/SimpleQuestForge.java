@@ -10,13 +10,16 @@ import io.github.flemmli97.simplequests.datapack.QuestsManager;
 import io.github.flemmli97.simplequests.forge.client.ForgeClientHandler;
 import io.github.flemmli97.simplequests.network.PacketRegistrar;
 import io.github.flemmli97.simplequests.player.PlayerData;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -51,6 +54,7 @@ public class SimpleQuestForge {
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> "*", (s1, s2) -> true));
         SimpleQuests.updateLoaderImpl(new LoaderImpl());
         FMLJavaModLoadingContext.get().getModEventBus().addListener(SimpleQuestForge::commonSetup);
+        FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(GlobalLootModifierSerializer.class, SimpleQuestForge::registry);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::addReload);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::command);
         MinecraftForge.EVENT_BUS.addListener(SimpleQuestForge::kill);
@@ -64,6 +68,10 @@ public class SimpleQuestForge {
         ProgressionTrackerRegistry.register();
         ConfigHandler.init();
         SimpleQuests.FTB_RANKS = ModList.get().isLoaded("ftbranks");
+    }
+
+    public static void registry(RegistryEvent.Register<GlobalLootModifierSerializer<?>> event) {
+        QuestNumberProvider.init();
     }
 
     public static void commonSetup(FMLCommonSetupEvent event) {

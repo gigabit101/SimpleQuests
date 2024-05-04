@@ -9,6 +9,7 @@ import io.github.flemmli97.simplequests.datapack.QuestBaseRegistry;
 import io.github.flemmli97.simplequests.datapack.QuestEntryRegistry;
 import io.github.flemmli97.simplequests.network.PacketRegistrar;
 import io.github.flemmli97.simplequests.player.PlayerData;
+import io.github.flemmli97.simplequests.quest.QuestNumberProvider;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.Event;
@@ -73,6 +74,7 @@ public class SimpleQuestsFabric implements ModInitializer {
                 ServerPlayNetworking.registerGlobalReceiver(id, handlerServer(decoder, handler));
             }
         }, 0);
+        QuestNumberProvider.init();
     }
 
     public static void onDeath(LivingEntity entity, DamageSource source) {
