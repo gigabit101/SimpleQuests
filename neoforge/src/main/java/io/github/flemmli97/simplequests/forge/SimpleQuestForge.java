@@ -15,12 +15,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -81,7 +81,7 @@ public class SimpleQuestForge {
     }
 
     public static void interactBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getEntity() instanceof ServerPlayer serverPlayer && event.getUseBlock() != Event.Result.DENY)
+        if (event.getEntity() instanceof ServerPlayer serverPlayer && event.getUseBlock() != TriState.FALSE)
             PlayerData.get(serverPlayer).onBlockInteract(event.getPos(), true);
     }
 

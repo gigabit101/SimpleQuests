@@ -1,3 +1,7 @@
+Simple Quests 1.5.6.b
+================
+- Update neoforge
+
 Simple Quests 1.5.6
 ================
 - Update to 1.20.6: Due to internal changes your datapacks most likely will not work anymore.
