@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    modCompileOnly("dev.ftb.mods:ftb-ranks-forge:${ftb_ranks}")
+    modCompileOnly("dev.ftb.mods:ftb-ranks-neoforge:${ftb_ranks}")
 }
 
 shadowJar {

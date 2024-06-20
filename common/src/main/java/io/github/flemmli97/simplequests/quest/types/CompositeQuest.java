@@ -21,7 +21,7 @@ import java.util.function.BiFunction;
 
 public class CompositeQuest extends QuestBase {
 
-    public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "composite_quest");
+    public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "composite_quest");
 
     public static final BiFunction<Boolean, Boolean, MapCodec<CompositeQuest>> CODEC = Util.memoize((withId, full) ->
             QuestBase.buildCodec(ResourceLocation.CODEC.listOf().fieldOf("quests")

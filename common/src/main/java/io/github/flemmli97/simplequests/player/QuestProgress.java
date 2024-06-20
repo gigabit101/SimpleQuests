@@ -307,7 +307,7 @@ public class QuestProgress {
                 throw new IllegalStateException();
             }
         } else {
-            this.base = QuestsManager.instance().getActualQuests(new ResourceLocation(tag.getString("Quest")));
+            this.base = QuestsManager.instance().getActualQuests(ResourceLocation.tryParse(tag.getString("Quest")));
             if (this.base == null) {
                 SimpleQuests.LOGGER.error("Cant find quest with id " + tag.getString("Quest") + ". Skipping");
                 throw new IllegalStateException();

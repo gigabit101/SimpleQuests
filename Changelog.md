@@ -1,6 +1,7 @@
 Simple Quests 1.5.6.b
 ================
-- Update neoforge
+- Update to 1.21
+~~- Update neoforge~~
 
 Simple Quests 1.5.6
 ================

@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 public class QuestCategory implements Comparable<QuestCategory> {
 
-    public static final QuestCategory DEFAULT_CATEGORY = new QuestCategory(new ResourceLocation(SimpleQuests.MODID, "default_category"),
+    public static final QuestCategory DEFAULT_CATEGORY = new QuestCategory(ResourceLocation.tryBuild(SimpleQuests.MODID, "default_category"),
             "Main", List.of(), new ItemStack(Items.WRITTEN_BOOK), false, -1, -1, 0, true, true, false);
 
     public static final Function<Boolean, Codec<QuestCategory>> CODEC = Util.memoize(full -> RecordCodecBuilder.create(inst -> inst.group(

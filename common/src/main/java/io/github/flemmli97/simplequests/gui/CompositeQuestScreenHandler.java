@@ -13,6 +13,7 @@ import io.github.flemmli97.simplequests.quest.types.Quest;
 import io.github.flemmli97.simplequests.quest.types.QuestBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -75,7 +76,7 @@ public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<Composi
         List<Component> lore = new ArrayList<>();
         quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
-            stack.enchant(Enchantments.UNBREAKING, 1);
+            stack.enchant(player.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING), 1);
             stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
         }
         for (MutableComponent comp : quest.getFormattedGuiTasks(player))

@@ -430,17 +430,17 @@ public class PlayerData {
             });
         }
         CompoundTag done = tag.getCompound("FinishedQuests");
-        done.getAllKeys().forEach(key -> this.cooldownTracker.put(new ResourceLocation(key), done.getLong(key)));
+        done.getAllKeys().forEach(key -> this.cooldownTracker.put(ResourceLocation.tryParse(key), done.getLong(key)));
         if (tag.contains("TimeTracker"))
             this.questTrackerTime = LocalDateTime.parse(tag.getString("TimeTracker"), TIME);
         CompoundTag daily = tag.getCompound("DailyQuestTracker");
-        daily.getAllKeys().forEach(key -> this.dailyQuestsTracker.put(new ResourceLocation(key), done.getInt(key)));
+        daily.getAllKeys().forEach(key -> this.dailyQuestsTracker.put(ResourceLocation.tryParse(key), done.getInt(key)));
         CompoundTag dailyCategory = tag.getCompound("DailyQuestCategoryTracker");
-        dailyCategory.getAllKeys().forEach(key -> this.dailyQuestsCategoryTracker.put(new ResourceLocation(key), done.getInt(key)));
+        dailyCategory.getAllKeys().forEach(key -> this.dailyQuestsCategoryTracker.put(ResourceLocation.tryParse(key), done.getInt(key)));
         CompoundTag total = tag.getCompound("FinishedQuestTracker");
-        total.getAllKeys().forEach(key -> this.finishedQuestsTracker.put(new ResourceLocation(key), done.getInt(key)));
+        total.getAllKeys().forEach(key -> this.finishedQuestsTracker.put(ResourceLocation.tryParse(key), done.getInt(key)));
         ListTag unlocked = tag.getList("UnlockedQuests", Tag.TAG_STRING);
-        unlocked.forEach(t -> this.unlockTracker.add(new ResourceLocation(t.getAsString())));
+        unlocked.forEach(t -> this.unlockTracker.add(ResourceLocation.tryParse(t.getAsString())));
     }
 
     public void clone(PlayerData data) {

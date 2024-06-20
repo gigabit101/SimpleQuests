@@ -25,7 +25,7 @@ import java.util.function.BiFunction;
 
 public class SequentialQuest extends QuestBase {
 
-    public static final ResourceLocation ID = new ResourceLocation(SimpleQuests.MODID, "sequential_quest");
+    public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "sequential_quest");
 
     public static final BiFunction<Boolean, Boolean, MapCodec<SequentialQuest>> CODEC = Util.memoize((withId, full) ->
             QuestBase.buildCodec(SequentialQuest.QuestData.CODEC
