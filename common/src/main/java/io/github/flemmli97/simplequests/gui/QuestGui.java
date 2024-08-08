@@ -97,7 +97,10 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
         quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
             stack.enchant(player.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING), 1);
-            stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
+            if (stack.has(DataComponents.STORED_ENCHANTMENTS))
+                stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
+            else if (stack.has(DataComponents.ENCHANTMENTS))
+                stack.set(DataComponents.ENCHANTMENTS, stack.get(DataComponents.ENCHANTMENTS).withTooltip(false));
         }
         if (type == PlayerData.AcceptType.DELAY) {
             lore.add(Component.translatable(ConfigHandler.LANG.get(player, type.langKey()), data.formattedCooldown(quest)).withStyle(ChatFormatting.DARK_RED));

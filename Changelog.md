@@ -1,3 +1,7 @@
+Simple Quests 1.5.7
+================
+- Fix nullpointer error with quest gui
+
 Simple Quests 1.5.6.b
 ================
 - Update to 1.21

@@ -77,7 +77,10 @@ public class CompositeQuestScreenHandler extends ServerOnlyScreenHandler<Composi
         quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
             stack.enchant(player.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING), 1);
-            stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
+            if (stack.has(DataComponents.STORED_ENCHANTMENTS))
+                stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
+            else if (stack.has(DataComponents.ENCHANTMENTS))
+                stack.set(DataComponents.ENCHANTMENTS, stack.get(DataComponents.ENCHANTMENTS).withTooltip(false));
         }
         for (MutableComponent comp : quest.getFormattedGuiTasks(player))
             lore.add(comp.setStyle(comp.getStyle().withItalic(false)));
