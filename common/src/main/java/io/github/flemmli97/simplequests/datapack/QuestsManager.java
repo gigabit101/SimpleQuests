@@ -68,7 +68,7 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
         Map<ResourceLocation, JsonElement> map = Maps.newHashMap();
         resourceManager.listResources(directory, file -> file.getPath().endsWith(".json")).forEach((fileRes, resource) -> {
             String path = fileRes.getPath();
-            ResourceLocation id = ResourceLocation.tryBuild(fileRes.getNamespace(), path.substring(i, path.length() - PATH_SUFFIX_LENGTH));
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(fileRes.getNamespace(), path.substring(i, path.length() - PATH_SUFFIX_LENGTH));
             try (BufferedReader reader = resource.openAsReader()) {
                 JsonElement jsonElement = GsonHelper.fromJson(GSON, reader, JsonElement.class);
                 JsonElement jsonElement2 = map.put(id, jsonElement);
@@ -111,11 +111,11 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
                         String cat = GsonHelper.getAsString(obj, "category", "");
                         QuestCategory questCategory = QuestCategory.DEFAULT_CATEGORY;
                         if (!cat.isEmpty()) {
-                            questCategory = this.categories.get(ResourceLocation.tryParse(cat));
+                            questCategory = this.categories.get(ResourceLocation.parse(cat));
                             if (questCategory == null)
                                 throw new JsonSyntaxException("Quest category of " + cat + " for quest " + res + " doesn't exist!");
                         }
-                        ResourceLocation questType = ResourceLocation.tryParse(GsonHelper.getAsString(obj, QuestBase.TYPE_ID, Quest.ID.toString()));
+                        ResourceLocation questType = ResourceLocation.parse(GsonHelper.getAsString(obj, QuestBase.TYPE_ID, Quest.ID.toString()));
                         QuestBase base = QuestBaseRegistry.deserialize(ops, questType, res, questCategory, obj);
                         map.computeIfAbsent(questCategory, c -> new ImmutableMap.Builder<>())
                                 .put(res, base);

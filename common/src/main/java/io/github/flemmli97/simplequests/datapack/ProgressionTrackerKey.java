@@ -9,11 +9,11 @@ import net.minecraft.resources.ResourceLocation;
 public record ProgressionTrackerKey<T, E extends QuestEntry>(ResourceLocation id) {
 
     public ProgressionTrackerKey(String id) {
-        this(ResourceLocation.tryParse(id));
+        this(ResourceLocation.parse(id));
     }
 
     public ProgressionTrackerKey(String namespace, String path) {
-        this(ResourceLocation.tryBuild(namespace, path));
+        this(ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 
     @Override

@@ -62,7 +62,7 @@ public class ParseHelper {
         if (element == null)
             return new ItemStack(fallback);
         if (element.isJsonPrimitive()) {
-            ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(element.getAsString())));
+            ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(element.getAsString())));
             if (stack.isEmpty())
                 return new ItemStack(fallback);
             return stack;

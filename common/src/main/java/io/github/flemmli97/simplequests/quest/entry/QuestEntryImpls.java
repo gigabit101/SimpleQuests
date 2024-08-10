@@ -43,7 +43,7 @@ public class QuestEntryImpls {
                             String description, boolean consumeItems,
                             EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "item");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "item");
 
         public static final Codec<ItemEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(ItemPredicate.CODEC.fieldOf("predicate").forGetter(d -> d.predicate),
@@ -140,7 +140,7 @@ public class QuestEntryImpls {
                         EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate))
                 ).apply(instance, (pred, amount, desc, player) -> new KillEntry(pred, amount, desc.orElse(""), player.orElse(null))));
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "entity");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "entity");
 
         @Override
         public boolean submit(ServerPlayer player) {
@@ -192,7 +192,7 @@ public class QuestEntryImpls {
     public record XPEntry(int amount,
                           EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "xp");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "xp");
         public static final Codec<XPEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(d -> d.amount),
                                 EntityPredicate.CODEC.optionalFieldOf("playerPredicate").forGetter(d -> Optional.ofNullable(d.playerPredicate)))
@@ -223,7 +223,7 @@ public class QuestEntryImpls {
     public record AdvancementEntry(ResourceLocation advancement, boolean reset,
                                    EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "advancement");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "advancement");
         public static final Codec<AdvancementEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(ResourceLocation.CODEC.fieldOf("advancement").forGetter(d -> d.advancement),
                         Codec.BOOL.fieldOf("reset").forGetter(d -> d.reset),
@@ -263,7 +263,7 @@ public class QuestEntryImpls {
     public record PositionEntry(BlockPos pos, int minDist, String description,
                                 EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "position");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "position");
         public static final Codec<PositionEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.BLOCK_POS_CODEC.fieldOf("pos").forGetter(d -> d.pos),
                         ExtraCodecs.NON_NEGATIVE_INT.fieldOf("minDist").forGetter(d -> d.minDist),
@@ -306,7 +306,7 @@ public class QuestEntryImpls {
     public record LocationEntry(LocationPredicate location, String description,
                                 EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "location");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "location");
 
         public static final Codec<LocationEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(LocationPredicate.CODEC.fieldOf("predicate").forGetter(d -> d.location),
@@ -350,7 +350,7 @@ public class QuestEntryImpls {
                                       String entityDescription,
                                       EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "entity_interact");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "entity_interact");
         public static final Codec<EntityInteractEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.optionalFieldOf("heldDescription").forGetter(d -> d.heldDescription.isEmpty() ? Optional.empty() : Optional.of(d.heldDescription)),
@@ -412,7 +412,7 @@ public class QuestEntryImpls {
                                      String blockDescription,
                                      EntityPredicate playerPredicate) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "block_interact");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "block_interact");
         public static final Codec<BlockInteractEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.optionalFieldOf("heldDescription").forGetter(d -> d.heldDescription.isEmpty() ? Optional.empty() : Optional.of(d.heldDescription)),
                         Codec.STRING.optionalFieldOf("blockDescription").forGetter(d -> d.blockDescription.isEmpty() ? Optional.empty() : Optional.of(d.blockDescription)),
@@ -482,7 +482,7 @@ public class QuestEntryImpls {
                                 String description, String heldDescription,
                                 String entityDescription) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "crafting");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "crafting");
         public static final Codec<CraftingEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.optionalFieldOf("heldDescription").forGetter(d -> d.heldDescription.isEmpty() ? Optional.empty() : Optional.of(d.heldDescription)),
@@ -527,7 +527,7 @@ public class QuestEntryImpls {
                                String description, String heldDescription,
                                String entityDescription) implements QuestEntry {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "fishing");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "fishing");
         public static final Codec<FishingEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.optionalFieldOf("heldDescription").forGetter(d -> d.heldDescription.isEmpty() ? Optional.empty() : Optional.of(d.heldDescription)),

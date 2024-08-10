@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public class C2SNotify implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<C2SNotify> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.tryBuild(SimpleQuests.MODID, "c2s_notify"));
+    public static final CustomPacketPayload.Type<C2SNotify> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "c2s_notify"));
 
     public static final C2SNotify INSTANCE = new C2SNotify();
 

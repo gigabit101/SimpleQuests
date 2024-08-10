@@ -29,7 +29,7 @@ import java.util.function.BiFunction;
 
 public class Quest extends QuestBase {
 
-    public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "quest");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "quest");
 
     public static final BiFunction<Boolean, Boolean, MapCodec<Quest>> CODEC = Util.memoize((withId, full) ->
             QuestBase.buildCodec(QuestData.CODEC

@@ -30,7 +30,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiItemEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_item");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_item");
         public static final Codec<MultiItemEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.optionalDescriptiveList(ItemPredicate.CODEC, "predicates cant' be empty").fieldOf("predicates").forGetter(d -> d.predicate),
                         NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
@@ -68,7 +68,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiKillEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_kill");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_kill");
         public static final Codec<MultiKillEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.optionalDescriptiveList(EntityPredicate.CODEC, "predicates can't be empty").fieldOf("predicates").forGetter(d -> d.predicate),
                         NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
@@ -103,7 +103,7 @@ public class QuestEntryMultiImpl {
 
     public static class XPRangeEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_xp");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_xp");
         public static final Codec<XPRangeEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(NumberProviders.CODEC.fieldOf("amount").forGetter(d -> d.amount),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
@@ -133,7 +133,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiAdvancementEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_advancements");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_advancements");
         public static final Codec<MultiAdvancementEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.nonEmptyList(ResourceLocation.CODEC, "advancements list can't be empty").fieldOf("advancements").forGetter(d -> d.advancements),
                         Codec.BOOL.fieldOf("reset").forGetter(d -> d.reset),
@@ -166,7 +166,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiPositionEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_position");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_position");
         public static final Codec<MultiPositionEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.optionalDescriptiveList(CodecHelper.BLOCK_POS_CODEC, "positions can't be empty").fieldOf("positions").forGetter(d -> d.positions),
                         ExtraCodecs.NON_NEGATIVE_INT.fieldOf("minDist").forGetter(d -> d.minDist),
@@ -200,7 +200,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiLocationEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_location");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_location");
         public static final Codec<MultiLocationEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(CodecHelper.descriptiveList(LocationPredicate.CODEC, "location predicates can't be empty").fieldOf("locations").forGetter(d -> d.locations),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
@@ -231,7 +231,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiEntityInteractEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_entity_interaction");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_entity_interaction");
         public static final Codec<MultiEntityInteractEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.BOOL.fieldOf("consume").forGetter(d -> d.consume),
                         Codec.STRING.fieldOf("description").forGetter(d -> d.description),
@@ -278,7 +278,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiBlockInteractEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_block_interaction");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_block_interaction");
         public static final Codec<MultiBlockInteractEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.BOOL.fieldOf("consume").forGetter(d -> d.consume),
                         Codec.BOOL.optionalFieldOf("allowDupes").forGetter(d -> d.allowDupes ? Optional.of(true) : Optional.empty()),
@@ -338,7 +338,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiCraftingEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_crafting");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_crafting");
         public static final Codec<MultiCraftingEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),
@@ -378,7 +378,7 @@ public class QuestEntryMultiImpl {
 
     public static class MultiFishingEntry extends MultiQuestEntryBase {
 
-        public static final ResourceLocation ID = ResourceLocation.tryBuild(SimpleQuests.MODID, "multi_fishing");
+        public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "multi_fishing");
         public static final Codec<MultiFishingEntry> CODEC = RecordCodecBuilder.create((instance) ->
                 instance.group(Codec.STRING.fieldOf("description").forGetter(d -> d.description),
                         Codec.STRING.fieldOf("taskDescription").forGetter(d -> d.taskDescription),

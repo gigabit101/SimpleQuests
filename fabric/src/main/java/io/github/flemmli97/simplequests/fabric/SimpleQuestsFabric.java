@@ -62,7 +62,7 @@ public class SimpleQuestsFabric implements ModInitializer {
 
             @Override
             public ResourceLocation getFabricId() {
-                return ResourceLocation.tryBuild(SimpleQuests.MODID, "reloader");
+                return ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "reloader");
             }
         });
         CommandRegistrationCallback.EVENT.register(((dispatcher, dedicated, selection) -> QuestCommand.register(dispatcher)));
@@ -89,7 +89,7 @@ public class SimpleQuestsFabric implements ModInitializer {
         }));
         PayloadTypeRegistry.playC2S().register(C2SNotify.TYPE, C2SNotify.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(C2SNotify.TYPE, (pkt, ctx) -> C2SNotify.handle(pkt, ctx.player()));
-        CONTEXT_MULTIPLIER = Registry.register(BuiltInRegistries.LOOT_NUMBER_PROVIDER_TYPE, ResourceLocation.tryBuild(SimpleQuests.MODID, "context_multiplier"), new LootNumberProviderType(QuestNumberProvider.ContextMultiplierNumberProvider.CODEC));
+        CONTEXT_MULTIPLIER = Registry.register(BuiltInRegistries.LOOT_NUMBER_PROVIDER_TYPE, ResourceLocation.fromNamespaceAndPath(SimpleQuests.MODID, "context_multiplier"), new LootNumberProviderType(QuestNumberProvider.ContextMultiplierNumberProvider.CODEC));
     }
 
     public static void onDeath(LivingEntity entity, DamageSource source) {
