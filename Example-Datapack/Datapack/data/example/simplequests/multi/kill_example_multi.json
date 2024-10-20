@@ -22,10 +22,10 @@
         {
           "description": "Kill %2$s plains cow",
           "value": {
-            "type": "minecraft:cow",
             "location": {
               "biomes": "minecraft:plains"
-            }
+            },
+            "type": "minecraft:cow"
           }
         }
       ],

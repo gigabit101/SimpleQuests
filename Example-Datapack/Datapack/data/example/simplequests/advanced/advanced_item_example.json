@@ -22,7 +22,7 @@
         "predicates": {
           "minecraft:enchantments": [
             {
-              "enchantment": "minecraft:sharpness",
+              "enchantments": "minecraft:sharpness",
               "levels": {
                 "min": 2,
                 "max": 3
