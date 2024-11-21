@@ -44,7 +44,7 @@ public class QuestBaseRegistry {
         if (d != null) {
             obj.addProperty("id", res.toString());
             obj.addProperty("category", category.id.toString());
-            return CODEC.apply(false, false).parse(ops, obj).getOrThrow();
+            return CODEC.apply(false, false).parse(ops, obj).getPartialOrThrow();
         }
         throw new IllegalStateException("Missing entry for key " + type);
     }

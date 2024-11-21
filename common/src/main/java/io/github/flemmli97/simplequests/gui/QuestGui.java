@@ -33,6 +33,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.enchantment.Enchantments;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +81,7 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
             }
 
             @Override
-            public Component getDisplayName() {
+            public @NotNull Component getDisplayName() {
                 return category == null || category == QuestCategory.DEFAULT_CATEGORY ?
                         Component.translatable(ConfigHandler.LANG.get(player, "simplequests.gui.main")) : category.getName();
             }
@@ -96,7 +97,7 @@ public class QuestGui extends ServerOnlyScreenHandler<QuestGui.QuestGuiData> {
         List<Component> lore = new ArrayList<>();
         quest.getDescription(player).forEach(c -> lore.add(c.setStyle(c.getStyle().withItalic(false))));
         if (data.isActive(quest)) {
-            stack.enchant(player.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING), 1);
+            stack.enchant(player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.UNBREAKING), 1);
             if (stack.has(DataComponents.STORED_ENCHANTMENTS))
                 stack.set(DataComponents.STORED_ENCHANTMENTS, stack.get(DataComponents.STORED_ENCHANTMENTS).withTooltip(false));
             else if (stack.has(DataComponents.ENCHANTMENTS))

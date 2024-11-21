@@ -31,7 +31,10 @@ public class QuestCategory implements Comparable<QuestCategory> {
             Codec.INT.optionalFieldOf("max_daily").forGetter(c -> c.maxDaily != 0 || full ? Optional.of(c.maxDaily) : Optional.empty()),
             Codec.BOOL.optionalFieldOf("selectable").forGetter(c -> !c.canBeSelected || full ? Optional.of(c.canBeSelected) : Optional.empty()),
 
-            CodecHelper.ITEM_STACK_CODEC.optionalFieldOf("icon").forGetter(c -> ParseHelper.defaultChecked(c.getIcon(), full ? null : Items.WRITTEN_BOOK)),
+            ItemStack.CODEC.optionalFieldOf("icon").forGetter(c -> {
+                System.out.println(c);
+                return Optional.of(c.icon);
+            }),
             Codec.BOOL.optionalFieldOf("only_same_category").forGetter(c -> c.sameCategoryOnly || full ? Optional.of(c.sameCategoryOnly) : Optional.empty()),
             Codec.INT.optionalFieldOf("max_concurrent_quests").forGetter(c -> c.maxConcurrentQuests != -1 || full ? Optional.of(c.maxConcurrentQuests) : Optional.empty()),
 

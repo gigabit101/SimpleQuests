@@ -20,6 +20,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
     }
 
     @Override
-    protected ResourceResult prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected @NotNull ResourceResult prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         return new ResourceResult(this.readFiles(resourceManager, CATEGORY_LOCATION),
                 this.readFiles(resourceManager, QUEST_LOCATION));
     }
@@ -92,7 +93,7 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
                 JsonObject obj = el.getAsJsonObject();
                 if (!obj.keySet().isEmpty()) {
                     obj.addProperty("id", res.toString());
-                    categoryBuilder.put(res, QuestCategory.CODEC.apply(true).parse(ops, obj).getOrThrow());
+                    categoryBuilder.put(res, QuestCategory.CODEC.apply(true).parse(ops, obj).getPartialOrThrow());
                 }
             }
         });
@@ -184,7 +185,5 @@ public class QuestsManager extends SimplePreparableReloadListener<QuestsManager.
         return this.categoryView;
     }
 
-    public record ResourceResult(Map<ResourceLocation, JsonElement> categories,
-                                 Map<ResourceLocation, JsonElement> quests) {
-    }
+    public record ResourceResult(Map<ResourceLocation, JsonElement> categories, Map<ResourceLocation, JsonElement> quests) { }
 }

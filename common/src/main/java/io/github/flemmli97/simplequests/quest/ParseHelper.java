@@ -62,7 +62,7 @@ public class ParseHelper {
         if (element == null)
             return new ItemStack(fallback);
         if (element.isJsonPrimitive()) {
-            ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(element.getAsString())));
+            ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(element.getAsString())).get());
             if (stack.isEmpty())
                 return new ItemStack(fallback);
             return stack;
@@ -75,6 +75,7 @@ public class ParseHelper {
     }
 
     public static Optional<ItemStack> defaultChecked(ItemStack stack, Item defaultValue) {
+        System.out.println(stack);
         if (stack.getCount() == 1 && stack.getComponentsPatch().isEmpty() && defaultValue != null && stack.getItem() == defaultValue)
             return Optional.empty();
         return Optional.of(stack);

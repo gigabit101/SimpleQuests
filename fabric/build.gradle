@@ -1,4 +1,29 @@
-apply from: "https://raw.githubusercontent.com/Flemmli97/GradleScripts/mc-architectury-fabric-neoforge/fabric.gradle"
+plugins {
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+}
+
+def ENV = System.getenv()
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+loom {
+//    accessWidenerPath = project(":common").loom.accessWidenerPath
+}
+
+configurations {
+    common
+    shadowLib
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    shadowCommon.extendsFrom shadowLib
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+    implementation.extendsFrom shadowLib
+}
 
 repositories {
     mavenCentral()
@@ -13,7 +38,47 @@ repositories {
 }
 
 dependencies {
-    modImplementation "me.lucko:fabric-permissions-api:${rootProject.fabric_permissions_api}"
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    // Remove the next line if you don't want to depend on the API
+    modApi "dev.architectury:architectury-fabric:${architectury_version}"
 
-    modCompileOnly("dev.ftb.mods:ftb-ranks-fabric:${rootProject.ftb_ranks}")
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    modImplementation "me.lucko:fabric-permissions-api:${fabric_permissions_api}"
+    modCompileOnly("dev.ftb.mods:ftb-ranks-fabric:${ftb_ranks}")
+}
+
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+shadowJar {
+    exclude "architectury.common.json"
+
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "shadow"
+}
+
+
+remapJar {
+    injectAccessWidener = true
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = "fabric"
+}
+
+jar {
+    archiveClassifier = "dev"
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
 }

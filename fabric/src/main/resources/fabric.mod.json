@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "id": "simplequests",
-  "version": "${version}",
+  "version": "1.0.0",
   "name": "Simple Quests",
   "description": "Server sided questing",
   "authors": [
     "Flemmli97"
   ],
   "contact": {
-    "homepage": "${homepage}",
+    "homepage": "https://github.com/Flemmli97/SimpleQuests",
     "issues": "https://github.com/Flemmli97/SimpleQuests/issues",
     "sources": "https://github.com/Flemmli97/SimpleQuests"
   },
@@ -25,7 +25,6 @@
     "simplequests.fabric.mixins.json"
   ],
   "depends": {
-    "fabric": ">=${fabric_version}",
-    "minecraft": ">=${mcversion}"
+    "minecraft": ">=1.21"
   }
 }

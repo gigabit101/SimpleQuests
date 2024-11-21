@@ -420,7 +420,7 @@ public class QuestEntryMultiImpl {
         if (!(provider instanceof QuestNumberProvider.ContextMultiplierNumberProvider mult))
             return provider.getInt(ctx);
         return Math.round(mult.getFloatWith(ctx, () -> {
-            ServerPlayer player = (ServerPlayer) ctx.getParamOrNull(LootContextParams.THIS_ENTITY);
+            ServerPlayer player = (ServerPlayer) ctx.getParameter(LootContextParams.THIS_ENTITY);
             return (float) PlayerData.get(player).getTimesCompleted(quest);
         }));
     }

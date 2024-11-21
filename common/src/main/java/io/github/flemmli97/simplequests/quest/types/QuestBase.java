@@ -97,7 +97,7 @@ public abstract class QuestBase implements Comparable<QuestBase> {
                                 .xmap(opt -> opt.map(Visibility::valueOf).orElse(Visibility.DEFAULT), vis -> vis != Visibility.DEFAULT || full ? Optional.of(vis.toString()) : Optional.empty()).forGetter(q -> q.visibility),
                         codec,
 
-                        CodecHelper.ITEM_STACK_CODEC.optionalFieldOf("icon").forGetter(q -> ParseHelper.defaultChecked(q.getIcon(), full ? null : Items.PAPER)),
+                        ItemStack.CODEC.optionalFieldOf("icon").forGetter(q -> ParseHelper.defaultChecked(q.getIcon(), full ? null : Items.PAPER)),
                         Codec.either(Codec.INT, Codec.STRING).optionalFieldOf("repeat_delay")
                                 .forGetter(q -> {
                                     if (q.repeatDelayString != null)
